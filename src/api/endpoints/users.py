@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request
 from sqlalchemy import select, or_
-from api.models import db, User
+from api.models import User
+from api.extensions import db
+
 
 users_bp = Blueprint('users', __name__, url_prefix="/users")
 
@@ -124,7 +126,6 @@ def edit_user():
 
     return jsonify(user.get_info())
     
-
 
 
 
