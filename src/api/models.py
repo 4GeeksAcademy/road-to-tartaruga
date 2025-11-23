@@ -3,9 +3,10 @@ from sqlalchemy import String, Boolean, DateTime, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from typing import List
+from api.extensions import bcrypt
+from api.extensions import db
 
 
-db = SQLAlchemy()
 
 class User(db.Model):
     __tablename__ = "user"
@@ -28,14 +29,27 @@ class User(db.Model):
         return {
             "id": self.id,
             "username": self.username,
+            "email": self.email
+        }
+    
+    def get_info(self):
+
+        return {
+            "id": self.id,
+            "username": self.username,
             "email": self.email,
             "is_active": self.is_active,
             "crews": [crew_user.crew_id for crew_user in self.crew_users],
             "blocked_crews": [blocked_user.crew_id for blocked_user in self.blocked_users],
             "missions": [mission.serialize() for mission in self.missions]
-            # do not serialize the password, its a security breach
         }
     
+    def set_password(self, password):
+        self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+        return {"message": "password saved"}
+    
+    def check_password(self, password):
+        return bcrypt.check_password_hash(self.password_hash, password)
 
 
 
@@ -43,7 +57,7 @@ class CrewUser(db.Model):
     __tablename__ = "crew_user"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    joinead_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    joined_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
 
     #foreign keys
@@ -77,10 +91,12 @@ class BlockedUser(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     blocked_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
 
+
     #foreign keys
 
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
     crew_id: Mapped[int] = mapped_column(ForeignKey("crew.id"), nullable=False)
+
     
     #relationships
 
@@ -118,8 +134,20 @@ class Crew(db.Model):
     def serialize(self):
         return {
             "id" : self.id,
-            "name": self.id,
-            "created_at": self.created_at 
+            "name": self.name,
+            "created_at": self.created_at
+        }
+    
+
+    def get_members(self):
+        return {
+              "members": [member.user.username for member in self.crew_users],
+            "members_id": [member.user.id for member in self.crew_users]
+        }
+    
+    def get_blocked_members(self):
+        return {
+             "blocked_members": [member.user.username for member in self.blocked_users]
         }
     
 
@@ -151,17 +179,24 @@ class Mission(db.Model):
         return {
             "id" : self.id,
             "description": self.description,
-            "created_at": self.created_at,
-            "user": {
-                "id": self.user.id,
-                "email": self.user.email,
-                "username": self.user.username
-            } if self.user else None,
-            "crew": {
+            "completed_at": self.completed_at,
+            "is_group": self.is_group
+        }
+    
+    def get_owner(self):
+
+        if self.is_group:
+            return {
                 "id": self.crew.id,
                 "name": self.crew.name
-            } if self.crew else None
-        }
+            }
+        elif(not self.is_group):
+            return {
+                "id": self.user.id,
+                "email": self.user.email,
+                "username": self.user.username 
+            }
+
     
 
 
@@ -174,7 +209,7 @@ class ClaudeProgress(db.Model):
     total_missions: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 
-    def serialize(self):
+    def get_progress(self):
         return {
             "id" : self.id,
             "total_missions": self.total_missions
