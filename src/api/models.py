@@ -1,19 +1,185 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Boolean, DateTime, Integer, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from datetime import datetime
+from typing import List
+
 
 db = SQLAlchemy()
 
 class User(db.Model):
+    __tablename__ = "user"
+
     id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-    password: Mapped[str] = mapped_column(nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
+    password_hash: Mapped[str] = mapped_column(nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=True)
+
+
+    #relationships
+
+    missions : Mapped[List["Mission"]] = relationship(back_populates="user")
+    crew_users : Mapped[List["CrewUser"]] = relationship(back_populates="user")
+    blocked_users : Mapped[List["BlockedUser"]] = relationship(back_populates="user")
 
 
     def serialize(self):
         return {
             "id": self.id,
+            "username": self.username,
             "email": self.email,
+            "is_active": self.is_active,
+            "crews": [crew_user.crew_id for crew_user in self.crew_users],
+            "blocked_crews": [blocked_user.crew_id for blocked_user in self.blocked_users],
+            "missions": [mission.serialize() for mission in self.missions]
             # do not serialize the password, its a security breach
         }
+    
+
+
+
+class CrewUser(db.Model):
+    __tablename__ = "crew_user"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    joinead_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    #foreign keys
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+    crew_id: Mapped[int] = mapped_column(ForeignKey("crew.id"), nullable=False)
+
+
+    #relationships
+
+    user : Mapped["User"] = relationship("User", back_populates="crew_users")
+    crew: Mapped["Crew"] = relationship("Crew", back_populates="crew_users")
+
+
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "joined_at": self.joined_at,
+            "user_id": self.user_id,
+            "crew_id": self.crew_id,
+            "is_admin": self.is_admin
+        }
+    
+
+
+
+class BlockedUser(db.Model):
+    __tablename__ = "blocked_user"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    blocked_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+
+    #foreign keys
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+    crew_id: Mapped[int] = mapped_column(ForeignKey("crew.id"), nullable=False)
+    
+    #relationships
+
+    user : Mapped["User"] = relationship("User", back_populates="blocked_users")
+    crew: Mapped["Crew"] = relationship("Crew", back_populates="blocked_users")
+
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "blocked_at": self.blocked_at,
+            "user_id": self.user_id,
+            "crew_id": self.crew_id
+        }
+    
+
+
+
+class Crew(db.Model):
+    __tablename__ = "crew"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    created_at : Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now) 
+
+
+    #relationships
+
+      
+    missions : Mapped[List["Mission"]] = relationship(back_populates="crew")
+    crew_users : Mapped[List["CrewUser"]] = relationship(back_populates="crew")
+    blocked_users : Mapped[List["BlockedUser"]] = relationship(back_populates="crew")
+
+
+    def serialize(self):
+        return {
+            "id" : self.id,
+            "name": self.id,
+            "created_at": self.created_at 
+        }
+    
+
+
+
+class Mission(db.Model):
+    __tablename__ = "mission"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    description: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    completed_at : Mapped[datetime] = mapped_column(DateTime, nullable=True) 
+    is_group : Mapped[bool] = mapped_column(Boolean, nullable=False, default=False) 
+
+
+    #foreign keys
+
+    user_id : Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
+    crew_id : Mapped[int] = mapped_column(ForeignKey("crew.id"), nullable=True)
+
+    #relationships
+
+    user: Mapped["User"] = relationship("User", back_populates="missions")
+    crew: Mapped["Crew"] = relationship("Crew", back_populates="missions")
+
+
+
+
+    def serialize(self):
+        return {
+            "id" : self.id,
+            "description": self.description,
+            "created_at": self.created_at,
+            "user": {
+                "id": self.user.id,
+                "email": self.user.email,
+                "username": self.user.username
+            } if self.user else None,
+            "crew": {
+                "id": self.crew.id,
+                "name": self.crew.name
+            } if self.crew else None
+        }
+    
+
+
+
+    
+class ClaudeProgress(db.Model):
+    __tablename__ = "claude_progress"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    total_missions: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+    def serialize(self):
+        return {
+            "id" : self.id,
+            "total_missions": self.total_missions
+        }
+    
+    def increase_progress(self,quantity):
+        self.total_missions = self.total_missions + quantity
+        return {"claude_progress": f"{self.total_missions}/10000"}
