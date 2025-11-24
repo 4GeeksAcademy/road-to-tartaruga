@@ -20,9 +20,9 @@ class User(db.Model):
 
     #relationships
 
-    missions : Mapped[List["Mission"]] = relationship(back_populates="user")
-    crew_users : Mapped[List["CrewUser"]] = relationship(back_populates="user")
-    blocked_users : Mapped[List["BlockedUser"]] = relationship(back_populates="user")
+    missions : Mapped[List["Mission"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    crew_users : Mapped[List["CrewUser"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    blocked_users : Mapped[List["BlockedUser"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
     def serialize(self):
@@ -126,9 +126,9 @@ class Crew(db.Model):
     #relationships
 
       
-    missions : Mapped[List["Mission"]] = relationship(back_populates="crew")
-    crew_users : Mapped[List["CrewUser"]] = relationship(back_populates="crew")
-    blocked_users : Mapped[List["BlockedUser"]] = relationship(back_populates="crew")
+    missions : Mapped[List["Mission"]] = relationship(back_populates="crew", cascade="all, delete-orphan")
+    crew_users : Mapped[List["CrewUser"]] = relationship(back_populates="crew", cascade="all, delete-orphan")
+    blocked_users : Mapped[List["BlockedUser"]] = relationship(back_populates="crew", cascade="all, delete-orphan")
 
 
     def serialize(self):
@@ -139,16 +139,26 @@ class Crew(db.Model):
         }
     
 
-    def get_members(self):
+    def get_info(self):
         return {
-              "members": [member.user.username for member in self.crew_users],
-            "members_id": [member.user.id for member in self.crew_users]
+            "name": self.name,
+            "created_at": self.created_at,
+            "members": [member.user.username for member in self.crew_users],
+            "members_id": [member.user.id for member in self.crew_users],
+            "blocked_members":  [member.user.username for member in self.blocked_users],
+            "blocked_members_id":  [member.user.id for member in self.blocked_users],
         }
     
-    def get_blocked_members(self):
+    def get_admins(self):
         return {
-             "blocked_members": [member.user.username for member in self.blocked_users]
+            "admins": [
+               { "username":member.user.username,
+                "id": member.user.id}
+                  for member in self.crew_users if member.is_admin
+                ]      
         }
+    
+   
     
 
 
@@ -171,8 +181,6 @@ class Mission(db.Model):
 
     user: Mapped["User"] = relationship("User", back_populates="missions")
     crew: Mapped["Crew"] = relationship("Crew", back_populates="missions")
-
-
 
 
     def serialize(self):
