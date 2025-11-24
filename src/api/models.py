@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Boolean, DateTime, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 from api.extensions import bcrypt
 from api.extensions import db
@@ -57,7 +57,7 @@ class CrewUser(db.Model):
     __tablename__ = "crew_user"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    joined_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    joined_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda:datetime.now(timezone.utc))
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
 
     #foreign keys
@@ -76,7 +76,7 @@ class CrewUser(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "joined_at": self.joined_at,
+            "joined_at": self.joined_at.isoformat(),
             "user_id": self.user_id,
             "crew_id": self.crew_id,
             "is_admin": self.is_admin
@@ -89,7 +89,7 @@ class BlockedUser(db.Model):
     __tablename__ = "blocked_user"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    blocked_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now)
+    blocked_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda:datetime.now(timezone.utc))
 
 
     #foreign keys
@@ -107,7 +107,7 @@ class BlockedUser(db.Model):
     def serialize(self):
         return {
             "id": self.id,
-            "blocked_at": self.blocked_at,
+            "blocked_at": self.blocked_at.isoformat(),
             "user_id": self.user_id,
             "crew_id": self.crew_id
         }
@@ -120,7 +120,7 @@ class Crew(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-    created_at : Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.now) 
+    created_at : Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda:datetime.now(timezone.utc)) 
 
 
     #relationships
@@ -141,8 +141,9 @@ class Crew(db.Model):
 
     def get_info(self):
         return {
+            "id": self.id,
             "name": self.name,
-            "created_at": self.created_at,
+            "created_at": self.created_at.isoformat(),
             "members": [member.user.username for member in self.crew_users],
             "members_id": [member.user.id for member in self.crew_users],
             "blocked_members":  [member.user.username for member in self.blocked_users],
@@ -187,7 +188,7 @@ class Mission(db.Model):
         return {
             "id" : self.id,
             "description": self.description,
-            "completed_at": self.completed_at,
+            "completed_at": self.completed_at.isoformat(),
             "is_group": self.is_group
         }
     

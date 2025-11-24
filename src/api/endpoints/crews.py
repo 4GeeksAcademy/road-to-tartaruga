@@ -56,7 +56,7 @@ def create_crew():
     user = db.session.get(User, user_id)
 
     if not user:
-        return jsonify({"message": "user not found with the provided user_id"}), 400
+        return jsonify({"message": "user not found with the provided user_id"}), 404
     
     if not name:
         return jsonify({
@@ -88,8 +88,60 @@ def create_crew():
     db.session.commit()
 
 
-
     return jsonify(crew.get_info()), 200
 
 
+
+@crews_bp.route("/", methods=['PATCH'])
+def edit_crew():
+
+    body = request.get_json()
+
+    user_id = body.get("user_id", None)
+    crew_id = body.get("crew_id", None)
+    name = body.get("name", None)
+
+    if not user_id and not crew_id and not name:
+        return jsonify({"message": "user_id, crew_id and name are required fields"}),400
+
+    if not user_id:
+        return jsonify({"message": "user_id are required"}),400
+    
+    if not crew_id:
+        return jsonify({"message": "crew_id are required"}),400
+    
+    if not name:
+        return jsonify({"message": "name are required"}),400
+    
+    user = db.session.get(User, user_id)
+
+    if not user:
+        return jsonify({"message": "user not found with the provided user_id"}), 404
+    
+    crew = db.session.get(Crew, crew_id)
+
+    if not crew:
+        return jsonify({"message": "crew not found with the provided crew_id"}), 404
+    
+    crew_user = db.session.execute(select(CrewUser).where(CrewUser.user_id == user_id, CrewUser.crew_id == crew_id)).scalars().first()
+
+    if not crew_user:
+        return jsonify({"message": "this user is not a member of the crew"}),404
+    
+    if not crew_user.is_admin:
+        return jsonify({"message": "you need to be admin to modify the crew information"}), 401
+    
+    exist_name = db.session.execute(select(Crew).where(Crew.name == name)).scalars().first()
+
+    if exist_name:
+        return jsonify({"message": "already exist a crew with this name"}), 400
+    
+    crew.name = name
+    db.session.commit()
+
+    return jsonify(crew.get_info())
+
+    
+
+    
 
