@@ -8,222 +8,148 @@ from api.extensions import db
 
 
 
-class User(db.Model):
-    __tablename__ = "user"
+class Sailor(db.Model):
+    __tablename__ = "sailor"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    username: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    sailorname: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=True)
-
+    is_ocean_god : Mapped[bool] = mapped_column(Boolean(), nullable=False, default=False)
 
     #relationships
 
-    missions : Mapped[List["Mission"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    crew_users : Mapped[List["CrewUser"]] = relationship(back_populates="user", cascade="all, delete-orphan")
-    blocked_users : Mapped[List["BlockedUser"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
     def serialize(self):
         return {
             "id": self.id,
-            "username": self.username,
+            "sailorname": self.sailorname,
             "email": self.email
         }
     
-    def get_info(self):
-
-        return {
-            "id": self.id,
-            "username": self.username,
-            "email": self.email,
-            "is_active": self.is_active,
-            "crews": [crew_user.crew_id for crew_user in self.crew_users],
-            "blocked_crews": [blocked_user.crew_id for blocked_user in self.blocked_users],
-            "missions": [mission.serialize() for mission in self.missions]
-        }
-    
-    def set_password(self, password):
-        self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
-        return {"message": "password saved"}
-    
-    def check_password(self, password):
-        return bcrypt.check_password_hash(self.password_hash, password)
-
-
-
-class CrewUser(db.Model):
-    __tablename__ = "crew_user"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    joined_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda:datetime.now(timezone.utc))
-    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
-
-    #foreign keys
-
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
-    crew_id: Mapped[int] = mapped_column(ForeignKey("crew.id"), nullable=False)
-
-
-    #relationships
-
-    user : Mapped["User"] = relationship("User", back_populates="crew_users")
-    crew: Mapped["Crew"] = relationship("Crew", back_populates="crew_users")
-
-
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "joined_at": self.joined_at.isoformat(),
-            "user_id": self.user_id,
-            "crew_id": self.crew_id,
-            "is_admin": self.is_admin
-        }
-    
-
-
-
-class BlockedUser(db.Model):
-    __tablename__ = "blocked_user"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    blocked_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda:datetime.now(timezone.utc))
-
-
-    #foreign keys
-
-    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
-    crew_id: Mapped[int] = mapped_column(ForeignKey("crew.id"), nullable=False)
-
-    
-    #relationships
-
-    user : Mapped["User"] = relationship("User", back_populates="blocked_users")
-    crew: Mapped["Crew"] = relationship("Crew", back_populates="blocked_users")
-
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "blocked_at": self.blocked_at.isoformat(),
-            "user_id": self.user_id,
-            "crew_id": self.crew_id
-        }
-    
-
-
+  
 
 class Crew(db.Model):
+
     __tablename__ = "crew"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-    created_at : Mapped[datetime] = mapped_column(DateTime, nullable=False, default=lambda:datetime.now(timezone.utc)) 
-
-
+    crew_code: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+     
     #relationships
 
-      
-    missions : Mapped[List["Mission"]] = relationship(back_populates="crew", cascade="all, delete-orphan")
-    crew_users : Mapped[List["CrewUser"]] = relationship(back_populates="crew", cascade="all, delete-orphan")
-    blocked_users : Mapped[List["BlockedUser"]] = relationship(back_populates="crew", cascade="all, delete-orphan")
 
 
     def serialize(self):
         return {
-            "id" : self.id,
-            "name": self.name,
-            "created_at": self.created_at
-        }
-    
-
-    def get_info(self):
-        return {
             "id": self.id,
-            "name": self.name,
-            "created_at": self.created_at.isoformat(),
-            "members": [member.user.username for member in self.crew_users],
-            "members_id": [member.user.id for member in self.crew_users],
-            "blocked_members":  [member.user.username for member in self.blocked_users],
-            "blocked_members_id":  [member.user.id for member in self.blocked_users],
+            "sailorname": self.sailorname,
+            "email": self.email
         }
     
-    def get_admins(self):
-        return {
-            "admins": [
-               { "username":member.user.username,
-                "id": member.user.id}
-                  for member in self.crew_users if member.is_admin
-                ]      
-        }
-    
-   
-    
-
-
 
 class Mission(db.Model):
+
     __tablename__ = "mission"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    description: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-    completed_at : Mapped[datetime] = mapped_column(DateTime, nullable=True) 
-    is_group : Mapped[bool] = mapped_column(Boolean, nullable=False, default=False) 
-
-
-    #foreign keys
-
-    user_id : Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
-    crew_id : Mapped[int] = mapped_column(ForeignKey("crew.id"), nullable=True)
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
+    description: Mapped[str] = mapped_column(String(230), nullable=False)
+    completed_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+     
 
     #relationships
 
-    user: Mapped["User"] = relationship("User", back_populates="missions")
-    crew: Mapped["Crew"] = relationship("Crew", back_populates="missions")
 
 
     def serialize(self):
         return {
-            "id" : self.id,
-            "description": self.description,
-            "completed_at": self.completed_at.isoformat(),
-            "is_group": self.is_group
+            "id": self.id,
+            "sailorname": self.sailorname,
+            "email": self.email
         }
     
-    def get_owner(self):
+class Objective(db.Model):
 
-        if self.is_group:
-            return {
-                "id": self.crew.id,
-                "name": self.crew.name
-            }
-        elif(not self.is_group):
-            return {
-                "id": self.user.id,
-                "email": self.user.email,
-                "username": self.user.username 
-            }
-
-    
-
-
-
-    
-class ClaudeProgress(db.Model):
-    __tablename__ = "claude_progress"
+    __tablename__ = "objective"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    total_missions: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
+    completed_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    state: Mapped[str] = mapped_column(String(120, default="pending", nullable=False))
+    completed_at: Mapped[datetime] = mapped_column(DateTime, nullable=True) 
+    #relationships
 
 
-    def get_progress(self):
+
+    def serialize(self):
         return {
-            "id" : self.id,
-            "total_missions": self.total_missions
+            "id": self.id,
+            "sailorname": self.sailorname,
+            "email": self.email
         }
     
-    def increase_progress(self,quantity):
-        self.total_missions = self.total_missions + quantity
-        return {"claude_progress": f"{self.total_missions}/10000"}
+
+
+class Input(db.Model):
+
+    __tablename__ = "input"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    points: Mapped[int] = mapped_column(Integer, nullable=False)
+       
+    #relationships
+
+
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "sailorname": self.sailorname,
+            "email": self.email
+        }
+    
+class ClaudeMission(db.Model):
+
+    __tablename__ = "mission"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
+    description: Mapped[str] = mapped_column(String(230), nullable=False)
+    points_to_achieve: Mapped[int] = mapped_column(Integer, nullable=False)
+     
+     
+    #relationships
+
+
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "sailorname": self.sailorname,
+            "email": self.email
+        }
+
+
+class CrewSailor(db.Model):
+
+    __tablename__ = "mission"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    state: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
+     
+    #relationships
+
+
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "sailorname": self.sailorname,
+            "email": self.email
+        }
+    
