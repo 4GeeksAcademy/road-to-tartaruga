@@ -1,10 +1,11 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean, DateTime, Integer, ForeignKey
+from sqlalchemy import String, Boolean, DateTime, Integer, ForeignKey, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, timezone
 from typing import List
 from api.extensions import bcrypt
 from api.extensions import db
+from flask import jsonify
 
 
 
@@ -12,7 +13,7 @@ class Sailor(db.Model):
     __tablename__ = "sailor"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    sailorname: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    sailor_name: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=True)
@@ -20,16 +21,49 @@ class Sailor(db.Model):
 
     #relationships
 
+    crews_sailors : Mapped[List["CrewSailor"]] = relationship(back_populates="sailor")
+    contributions : Mapped[List["Contribution"]] = relationship(back_populates="sailor")
+    created_crews : Mapped[List["Crew"]] = relationship(back_populates="creator")
+    created_missions : Mapped[List["Mission"]] = relationship(back_populates="creator")
+    missions : Mapped[List["Mission"]] = relationship(back_populates="sailor_owner")
+    assigned_objectives: Mapped[List["Objective"]] = relationship(back_populates="assigned_to")
+    claude_missions_created: Mapped[List["ClaudeMission"]] = relationship(back_populates="creator")
+
 
 
     def serialize(self):
+
         return {
             "id": self.id,
-            "sailorname": self.sailorname,
-            "email": self.email
+            "sailor_name": self.sailor_name,
+            "email": self.email,
+            "is_ocean_god": self.is_ocean_god,
+            "crews": [crew.get_basic_info() for crew in self.crew_sailors.crew],
+            "missions" : [mission.get_basic_info() for mission in self.missions]
         }
     
-  
+    def get_basic_info(self):
+        return{
+            "id": self.id,
+            "sailor_name": self.sailor_name,
+            "email": self.email
+        }
+
+
+    def get_missions_by_state(self):
+        return {
+            "completed": [mission.get_basic_info() for mission in self.missions if mission.completed_at],
+            "incompleted": [mission.get_basic_info() for mission in self.missions if not mission.completed_at]
+            }
+    
+    def get_contributions(self):
+        return {
+            "contributions": [contribution.get_basic_info() for contribution in self.contributions if contribution.contributed_points > 0]
+        }
+
+
+
+
 
 class Crew(db.Model):
 
@@ -37,119 +71,242 @@ class Crew(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-    crew_code: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
-     
+
+    #foreign keys
+    creator_id: Mapped[int]= mapped_column(ForeignKey("sailor.id"))
+
     #relationships
 
+    contributions : Mapped[List["Contribution"]] = relationship(back_populates="crew")
+    crew_sailors : Mapped[List["CrewSailor"]] = relationship(back_populates="crew")
+    missions : Mapped[List["Mission"]] = relationship(back_populates="crew_owner")
+
+    creator: Mapped["Sailor"] = relationship(back_populates="created_crews")
 
 
     def serialize(self):
         return {
             "id": self.id,
-            "sailorname": self.sailorname,
-            "email": self.email
+            "name": self.name,
+            "crew_sailors": [sailor.sailor_name for sailor in self.crew_sailors.sailor],
+            "crew_sailors_id": [sailor.id for sailor in self.crew_sailors.sailor],
+            "contributions": [contribution.get_contribution() for contribution in self.contributions],
+            "missions": [mission.get_basic_info()  for mission in self.missions ],
+            "creator_id": self.creator_id
+        } 
+    
+    def get_missions_by_status(self):
+        return{
+            "completed": [mission.get_basic_info() for mission in self.missions if mission.completed_at],
+            "incompleted": [mission.get_basic_info() for mission in self.missions if not mission.completed_at]
         }
     
-
-class Mission(db.Model):
-
-    __tablename__ = "mission"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str] = mapped_column(String(120), nullable=False)
-    description: Mapped[str] = mapped_column(String(230), nullable=False)
-    completed_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
-     
-
-    #relationships
-
-
-
-    def serialize(self):
+    def get_basic_info(self):
         return {
             "id": self.id,
-            "sailorname": self.sailorname,
-            "email": self.email
+            "name": self.name
         }
-    
-class Objective(db.Model):
 
-    __tablename__ = "objective"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str] = mapped_column(String(120), nullable=False)
-    completed_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
-    state: Mapped[str] = mapped_column(String(120, default="pending", nullable=False))
-    completed_at: Mapped[datetime] = mapped_column(DateTime, nullable=True) 
-    #relationships
-
-
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "sailorname": self.sailorname,
-            "email": self.email
-        }
-    
-
-
-class Input(db.Model):
-
-    __tablename__ = "input"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    points: Mapped[int] = mapped_column(Integer, nullable=False)
-       
-    #relationships
-
-
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "sailorname": self.sailorname,
-            "email": self.email
-        }
-    
-class ClaudeMission(db.Model):
-
-    __tablename__ = "mission"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str] = mapped_column(String(120), nullable=False)
-    description: Mapped[str] = mapped_column(String(230), nullable=False)
-    points_to_achieve: Mapped[int] = mapped_column(Integer, nullable=False)
-     
-     
-    #relationships
-
-
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "sailorname": self.sailorname,
-            "email": self.email
-        }
 
 
 class CrewSailor(db.Model):
 
-    __tablename__ = "mission"
+
+    __tablename__= "crew_sailor"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    state: Mapped[str] = mapped_column(String(20), nullable=False, default="active")
-     
+    is_admin: Mapped[bool] = mapped_column(Boolean(), default=False)
+
+    #foreign keys
+    sailor_id: Mapped[int] = mapped_column(ForeignKey("sailor.id"))
+    crew_id: Mapped[int] = mapped_column(ForeignKey("crew.id"))
+    
+    
     #relationships
+    sailor: Mapped["Sailor"] = relationship(back_populates="crew_sailors")
+    crew: Mapped["Crew"] = relationship(back_populates="crew_sailors")
 
 
 
     def serialize(self):
-        return {
+        return{
             "id": self.id,
-            "sailorname": self.sailorname,
-            "email": self.email
+            "is_admin": self.is_admin,
+            "sailor_id": self.sailor_id,
+            "crew_id": self.crew_id
         }
     
+
+
+    
+class Mission(db.Model):
+
+    __tablename__="mission"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
+    description: Mapped[str] = mapped_column(String(245), unique=True, nullable=False)
+    completed_at : Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
+
+    #foreign keys
+    creator_id: Mapped[int]= mapped_column(ForeignKey("sailor.id"))
+    sailor_owner_id : Mapped[int] = mapped_column(ForeignKey("sailor.id"), nullable=True)
+    crew_owner_id : Mapped[int] = mapped_column(ForeignKey("crew.id"), nullable=True)
+
+
+    #relationships
+    creator: Mapped["Sailor"] = relationship(back_populates="created_missions")
+    sailor_owner: Mapped["Sailor"] = relationship(back_populates="missions")
+    crew_owner: Mapped["Crew"] = relationship(back_populates="missions")
+    
+    objectives: Mapped[List["Objective"]] = relationship(back_populates="mission")
+
+
+
+    def serialize(self):
+        return{
+            "id": self.id,
+            "title": self.title,
+            "description": self.title,
+            "owner": self.sailor_owner.sailor_name if self.sailor_owner else self.crew_owner.name,
+            "owner_id": self.sailor_owner_id if self.sailor_owner_id else self.crew_owner_id
+        }
+    
+    def get_basic_info(self):
+        return{
+            "title": self.title,
+            "description": self.description
+        }
+
+
+
+
+
+class Objective(db.Model):
+    
+
+    __tablename__="objective"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
+    is_crew: Mapped[bool]= mapped_column(Boolean(), default=False)
+    completed_ad : Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    # foreign keys
+    
+  
+    mission_id : Mapped[int] = mapped_column(ForeignKey("mission.id"), nullable=False)
+    assigned_to_id : Mapped[int] = mapped_column(ForeignKey("sailor.id"), nullable=False)
+    
+
+    #relationships
+
+    mission: Mapped["Mission"] = relationship(back_populates="objectives")
+    assigned_to: Mapped["Sailor"] = relationship(back_populates="assigned_objectives")
+
+    
+   
+    def serialize(self):
+        return{
+            "id": self.id,
+            "title": self.title,
+            "is_crew": self.is_crew,
+            "owner": self.mission.sailor_owner.sailor_name if self.mission.sailor_owner else self.mission.crew_owner.name,
+            "assigned_to_id": self.assigned_to_id,
+            "mission_id": self.mission_id
+        }
+    
+
+    def get_basic_info(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "mission_title": self.mission.title,
+            "mission_id": self.mission_id
+        }
+
+    def get_crew_id_owner(self):
+        return self.mission.crew_owner_id
+
+
+class ClaudeMission(db.Model):
+
+    __tablename__="claude_mission"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
+    description: Mapped[str] = mapped_column(String(245), nullable=False)
+    objective: Mapped[str]= mapped_column(String(120), nullable=False)
+    scrolls : Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    #foreign keys
+
+    creator_id: Mapped[int] = mapped_column(ForeignKey("sailor.id"), nullable=False)
+
+
+    #relationships
+    contributions: Mapped[List["Contribution"]] = relationship(back_populates="claude_mission")
+    creator: Mapped["Sailor"] = relationship(back_populates="claude_missions_created")
+
+
+    def serialize(self):
+        return{
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "objective": self.objective,
+            "scrolls": self.scrolls
+        }
+    
+    def get_contributions(self):
+        return {
+            "contributions": [contribution.get_basic_info() for contribution in self.contributions]
+        }
+
+
+
+    
+
+
+class Contribution(db.Model):
+
+
+    __tablename__= "contribution"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    contribution: Mapped[int] = mapped_column(Integer, default=0)
+    is_crew: Mapped[bool] = mapped_column(Boolean(), default=False)
+
+
+    #foreign keys
+    sailor_id: Mapped[int] = mapped_column(ForeignKey("sailor.id"), nullable=True)
+    crew_id: Mapped[int] = mapped_column(ForeignKey("crew.id"), nullable=True)
+    claude_mission_id: Mapped[int] = mapped_column(ForeignKey("claude_mission.id"), nullable=False)
+    
+    
+    #relationships
+    sailor: Mapped["Sailor"] = relationship(back_populates="contributions")
+    crew: Mapped["Crew"] = relationship(back_populates="contributions")
+    claude_mission: Mapped["ClaudeMission"] = relationship(back_populates="contributions")
+    
+
+
+    def serialize(self):
+
+        contributor = self.sailor if not self.is_crew else self.crew
+
+        return{
+            "id": self.id,
+            "contributed_scrolls": self.contributed_scrolls,
+            "contributor": contributor.sailor_name if not self.is_crew else contributor.name,
+            "contributor_id": contributor.id,
+            "is_crew": self.is_crew
+        }
+    
+    def get_basic_info(self):
+        return {
+            "claude_mission": self.claude_mission,
+            "contribution": self.contribution
+        }
+
+
