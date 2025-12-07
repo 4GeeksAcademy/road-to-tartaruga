@@ -39,9 +39,18 @@ class Sailor(db.Model):
             "sailor_name": self.sailor_name,
             "email": self.email,
             "is_ocean_god": self.is_ocean_god,
-            "crews": [crew.get_basic_info() for crew in self.crew_sailors.crew],
-            "missions" : [mission.get_basic_info() for mission in self.missions]
+            "crews": [crew_sailor.crew.get_basic_info() for crew_sailor in self.crew_sailors],
+            "missions" : self.get_missions_by_state(),
+            "assigned_objectives": self.get_assigned_objectives()
         }
+        
+
+    def set_password(self, password):
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        self.password_hash = hashed_password
+
+    def check_password(self, password):
+        return bcrypt.check_password_hash(self.password_hash, password)
 
     def get_basic_info(self):
         return{
@@ -117,7 +126,7 @@ class Crew(db.Model):
             "crew_sailors": [sailor.sailor_name for sailor in self.crew_sailors.sailor],
             "crew_sailors_id": [sailor.id for sailor in self.crew_sailors.sailor],
             "contributions": [contribution.get_contribution() for contribution in self.contributions],
-            "missions": [mission.get_basic_info()  for mission in self.missions ],
+            "missions": self.get_missions_by_status(),
             "creator_id": self.creator_id
         } 
     
@@ -202,7 +211,7 @@ class Mission(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(120), nullable=False)
     description: Mapped[str] = mapped_column(String(245), unique=True, nullable=False)
-    completed_at : Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
+    completed_at : Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), nullable=True)
 
     #foreign keys
     creator_id: Mapped[int]= mapped_column(ForeignKey("sailor.id"))
@@ -253,7 +262,7 @@ class Objective(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(120), nullable=False)
     is_crew: Mapped[bool]= mapped_column(Boolean(), default=False)
-    completed_at : Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
+    completed_at : Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # foreign keys
     
