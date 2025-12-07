@@ -5,20 +5,26 @@ from flask import Flask, request, jsonify, url_for, Blueprint
 from api.models import db
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
-from api.endpoints.users import users_bp
+from api.endpoints.sailors import sailors_bp
 from api.endpoints.crews import crews_bp
 from api.endpoints.missions import missions_bp
 from api.endpoints.auth import auth_bp
+from api.endpoints.objectives import objectives_bp
+from api.endpoints.claude_missions import claude_missions_bp
+from api.endpoints.contributions import contributions_bp
+
 api = Blueprint('api', __name__)
 
 # Allow CORS requests to this API
 CORS(api)
 
-api.register_blueprint(users_bp)
+api.register_blueprint(sailors_bp)
 api.register_blueprint(crews_bp)
 api.register_blueprint(missions_bp)
 api.register_blueprint(auth_bp)
-
+api.register_blueprint(objectives_bp)
+api.register_blueprint(claude_missions_bp)
+api.register_blueprint(contributions_bp)
 
 
 @api.route('/hello', methods=['POST', 'GET'])

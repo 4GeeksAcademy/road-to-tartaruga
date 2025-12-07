@@ -231,7 +231,8 @@ class Mission(db.Model):
     def get_basic_info(self):
         return{
             "title": self.title,
-            "description": self.description
+            "description": self.description,
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None
         }
     
     def get_objectives(self):

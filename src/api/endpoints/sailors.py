@@ -3,7 +3,7 @@ from sqlalchemy import select, or_
 from api.extensions import db
 
 
-users_bp = Blueprint('users', __name__, url_prefix="/users")
+sailors_bp = Blueprint('sailors', __name__, url_prefix="/sailors")
 
 
 
