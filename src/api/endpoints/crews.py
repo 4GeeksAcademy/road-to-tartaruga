@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from api.extensions import db
 from sqlalchemy import select
 import uuid
-from api.models import Crew, CrewSailor, Sailor
+from api.models import Crew, CrewSailor, Sailor, CrewSailorStatus
 
 
 #Genera codigo de invitacion irrepetible
@@ -74,21 +74,35 @@ def create_crew():
 
     sailor_quantity_crews = len(sailor_crews)
 
+    print([sailor_crew.crew.name for  sailor_crew in sailor_crews])
+
     if sailor_quantity_crews >= 3:
         return jsonify({"message": "sailor crews limit has been reached 3 of 3"}),400
+    
+    created_crews = db.session.execute(select(Crew).where(Crew.creator_id == sailor_id)).scalars().all()
 
-    crew = Crew(name=name)
+    created_crews_quantity = len(created_crews)
+
+    if created_crews_quantity >=3:
+        return jsonify({"message": "sailor crews created limit has been reached 3 of 3"}),404
+
+    crew = Crew(name=name, creator_id=sailor_id)
 
     db.session.add(crew)
     db.session.commit()
 
     crew_id = crew.id
-    crew_user = CrewSailor(user_id=sailor_id, crew_id=crew_id, is_admin=True)
+    crew_user = CrewSailor(sailor_id=sailor_id, crew_id=crew_id, is_captain=True, status=CrewSailorStatus.ACTIVE)
     db.session.add(crew_user)
     db.session.commit()
 
 
-    return jsonify(crew.serialize()), 200
+    return jsonify(crew.get_basic_info()), 200
+
+
+
+
+
 
 
 
@@ -128,8 +142,8 @@ def edit_crew():
     if not crew_sailor:
         return jsonify({"message": "this sailor is not a member of the crew"}),404
     
-    if not crew_sailor.is_admin:
-        return jsonify({"message": "you need to be admin to modify the crew information"}), 401
+    if not crew_sailor.is_captain:
+        return jsonify({"message": "you need to be captain to modify the crew information"}), 401
     
     exist_name = db.session.execute(select(Crew).where(Crew.name == name)).scalars().first()
 
@@ -139,7 +153,11 @@ def edit_crew():
     crew.name = name
     db.session.commit()
 
-    return jsonify(crew.get_info())
+    return jsonify(crew.get_basic_info())
+
+
+
+
 
 
 @crews_bp.route("/", methods=['DELETE'])
@@ -174,8 +192,8 @@ def delete_crew():
     if not crew_sailor:
         return jsonify({"message": "this sailor is not a member of the crew"}),404
     
-    if not crew_sailor.is_admin:
-        return jsonify({"message": "you need to be admin to delete the crew"}), 401
+    if not crew_sailor.is_captain:
+        return jsonify({"message": "you need to be captain to delete the crew"}), 401
     
 
     db.session.delete(crew)

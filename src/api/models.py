@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean, DateTime, Integer, ForeignKey, select
+from sqlalchemy import String, Boolean, DateTime, Integer, ForeignKey, select, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import timezone
 import datetime
@@ -7,6 +7,7 @@ from typing import List
 from api.extensions import bcrypt
 from api.extensions import db
 from flask import jsonify
+import enum
 
 
 
@@ -113,7 +114,7 @@ class Crew(db.Model):
     #relationships
 
     contributions : Mapped[List["Contribution"]] = relationship(back_populates="crew")
-    crew_sailors : Mapped[List["CrewSailor"]] = relationship(back_populates="crew")
+    crew_sailors : Mapped[List["CrewSailor"]] = relationship(back_populates="crew", cascade="all, delete-orphan")
     missions : Mapped[List["Mission"]] = relationship(back_populates="crew_owner")
 
     creator: Mapped["Sailor"] = relationship(back_populates="created_crews")
@@ -123,9 +124,9 @@ class Crew(db.Model):
         return {
             "id": self.id,
             "name": self.name,
-            "crew_sailors": [sailor.sailor_name for sailor in self.crew_sailors.sailor],
-            "crew_sailors_id": [sailor.id for sailor in self.crew_sailors.sailor],
-            "contributions": [contribution.get_contribution() for contribution in self.contributions],
+            "crew_sailors": [crew_sailor.sailor.sailor_name for crew_sailor in self.crew_sailors],
+            "crew_sailors_id": [sailor.sailor.id for sailor in self.crew_sailors],
+            "contributions": [contribution.get_basic_info() for contribution in self.contributions],
             "missions": self.get_missions_by_status(),
             "creator_id": self.creator_id
         } 
@@ -158,6 +159,12 @@ class Crew(db.Model):
 
 
 
+class CrewSailorStatus(enum.Enum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    KICKED = "kicked"
+
+
 
 class CrewSailor(db.Model):
 
@@ -165,13 +172,14 @@ class CrewSailor(db.Model):
     __tablename__= "crew_sailor"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    is_admin: Mapped[bool] = mapped_column(Boolean(), default=False)
-    joined_at : Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    is_captain: Mapped[bool] = mapped_column(Boolean(), default=False)
+    joined_at : Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.datetime.now(timezone.utc))
 
 
     #foreign keys
     sailor_id: Mapped[int] = mapped_column(ForeignKey("sailor.id"))
     crew_id: Mapped[int] = mapped_column(ForeignKey("crew.id"))
+    status: Mapped[CrewSailorStatus] = mapped_column(Enum(CrewSailorStatus, name="crew_sailor_status"), nullable= False)
     
     
     #relationships
@@ -183,7 +191,7 @@ class CrewSailor(db.Model):
     def serialize(self):
         return{
             "id": self.id,
-            "is_admin": self.is_admin,
+            "is_captain": self.is_captain,
             "sailor_id": self.sailor_id,
             "crew_id": self.crew_id
         }
@@ -392,7 +400,7 @@ class Contribution(db.Model):
     
     def get_basic_info(self):
         return {
-            "claude_mission": self.claude_mission,
+            "claude_mission": self.claude_mission.get_basic_info(),
             "contribution": self.contribution,
             "objective": self.claude_mission.objective
         }

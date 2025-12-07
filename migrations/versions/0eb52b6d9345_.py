@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 0290f65a9ba3
+Revision ID: 0eb52b6d9345
 Revises: 
-Create Date: 2025-12-07 12:16:05.368265
+Create Date: 2025-12-07 21:04:16.517251
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0290f65a9ba3'
+revision = '0eb52b6d9345'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -62,8 +62,10 @@ def upgrade():
     op.create_table('crew_sailor',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('is_admin', sa.Boolean(), nullable=False),
+    sa.Column('joined_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('sailor_id', sa.Integer(), nullable=False),
     sa.Column('crew_id', sa.Integer(), nullable=False),
+    sa.Column('status', sa.Enum('ACTIVE', 'INACTIVE', 'KICKED', name='crew_sailor_status'), nullable=False),
     sa.ForeignKeyConstraint(['crew_id'], ['crew.id'], ),
     sa.ForeignKeyConstraint(['sailor_id'], ['sailor.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -72,7 +74,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=120), nullable=False),
     sa.Column('description', sa.String(length=245), nullable=False),
-    sa.Column('completed_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('completed_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('creator_id', sa.Integer(), nullable=False),
     sa.Column('sailor_owner_id', sa.Integer(), nullable=True),
     sa.Column('crew_owner_id', sa.Integer(), nullable=True),
@@ -86,7 +88,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=120), nullable=False),
     sa.Column('is_crew', sa.Boolean(), nullable=False),
-    sa.Column('completed_ad', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('completed_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('mission_id', sa.Integer(), nullable=False),
     sa.Column('assigned_to_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['assigned_to_id'], ['sailor.id'], ),

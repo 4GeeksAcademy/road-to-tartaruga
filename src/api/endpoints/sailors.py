@@ -93,7 +93,7 @@ def edit_sailor():
     exist_email = db.session.execute(select(Sailor).where(Sailor.email == email, Sailor.id != sailor_id)).scalars().first()
 
     if exist_sailor_name and exist_email:
-        return jsonify({"message": "already exist an sailor with the provided sailor_name and email"}),400
+        return jsonify({"message": "already exist a sailor with the provided sailor_name and email"}),400
     
     if exist_sailor_name:
         return jsonify({
@@ -101,7 +101,7 @@ def edit_sailor():
         }), 400
     if exist_email:
         return jsonify({
-                    "message": "already exist an sailor with the provided email"
+                    "message": "already exist a sailor with the provided email"
                 }), 400
     
   
@@ -133,26 +133,23 @@ def edit_sailor():
     
 
 
+@sailors_bp.route("/", methods=['DELETE'])
+def delete_sailor():
 
+    if not request.args:
+        return jsonify({"message": "you must use the sailor_id queryparam to delete an sailor"}),400
+    sailor_id = request.args.get("sailor_id")
 
-
-# @sailors_bp.route("/", methods=['DELETE'])
-# def delete_sailor():
-
-#     if not request.args:
-#         return jsonify({"message": "you must use the sailor_id queryparam to delete an sailor"}),400
-#     sailor_id = request.args.get("sailor_id")
-
-#     if not sailor_id:
-#         return jsonify({"message": "you must send a sailor_id using queryparam"}),400
+    if not sailor_id:
+        return jsonify({"message": "you must send a sailor_id using queryparam"}),400
     
-#     sailor = db.session.get(Sailor, sailor_id)
+    sailor = db.session.get(Sailor, sailor_id)
 
-#     if not sailor: 
-#         return jsonify({"message": "sailor not found with the provided sailor_id, try another one"}),400
+    if not sailor: 
+        return jsonify({"message": "sailor not found with the provided sailor_id, try another one"}),400
     
-#     db.session.delete(sailor)
-#     db.session.commit()
+    db.session.delete(sailor)
+    db.session.commit()
 
-#     return jsonify({"done": True}), 200
+    return jsonify({"done": True}), 200
     
