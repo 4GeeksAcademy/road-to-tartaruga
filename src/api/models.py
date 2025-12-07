@@ -1,7 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import String, Boolean, DateTime, Integer, ForeignKey, select
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import datetime, timezone
+from datetime import timezone
+import datetime
 from typing import List
 from api.extensions import bcrypt
 from api.extensions import db
@@ -21,11 +22,11 @@ class Sailor(db.Model):
 
     #relationships
 
-    crews_sailors : Mapped[List["CrewSailor"]] = relationship(back_populates="sailor")
+    crew_sailors : Mapped[List["CrewSailor"]] = relationship(back_populates="sailor")
     contributions : Mapped[List["Contribution"]] = relationship(back_populates="sailor")
     created_crews : Mapped[List["Crew"]] = relationship(back_populates="creator")
-    created_missions : Mapped[List["Mission"]] = relationship(back_populates="creator")
-    missions : Mapped[List["Mission"]] = relationship(back_populates="sailor_owner")
+    created_missions : Mapped[List["Mission"]] = relationship(foreign_keys="Mission.creator_id", back_populates="creator")
+    missions : Mapped[List["Mission"]] = relationship(foreign_keys="Mission.sailor_owner_id", back_populates="sailor_owner")
     assigned_objectives: Mapped[List["Objective"]] = relationship(back_populates="assigned_to")
     claude_missions_created: Mapped[List["ClaudeMission"]] = relationship(back_populates="creator")
 
@@ -41,7 +42,7 @@ class Sailor(db.Model):
             "crews": [crew.get_basic_info() for crew in self.crew_sailors.crew],
             "missions" : [mission.get_basic_info() for mission in self.missions]
         }
-    
+
     def get_basic_info(self):
         return{
             "id": self.id,
@@ -49,16 +50,41 @@ class Sailor(db.Model):
             "email": self.email
         }
 
-
-    def get_missions_by_state(self):
-        return {
-            "completed": [mission.get_basic_info() for mission in self.missions if mission.completed_at],
-            "incompleted": [mission.get_basic_info() for mission in self.missions if not mission.completed_at]
-            }
-    
     def get_contributions(self):
         return {
             "contributions": [contribution.get_basic_info() for contribution in self.contributions if contribution.contributed_points > 0]
+        }
+
+    def get_created_crews(self):
+        return {
+            "created_crews": [crew.get_basic_info() for crew in self.created_crews]
+        }
+    
+    def get_created_missions(self):
+        return {
+            "individual": [mission.get_basic_info() for mission in self.created_missions if mission.sailor_owner],
+            "crews": [mission.serialize() for mission in self.created_missions if mission.crew_owner],
+            "claude_missions": [claude_mission.get_basic_info() for claude_mission in self.claude_missions_created]
+        }
+
+    def get_missions_by_state(self):
+        return {
+            "missions":
+                { "completed": [mission.get_basic_info() for mission in self.missions if mission.completed_at],
+                  "incompleted": [mission.get_basic_info() for mission in self.missions if not mission.completed_at]}
+                 }
+    
+    def get_assigned_objectives(self):
+        return {
+            "individuals": [objective.get_basic_info() for objective in self.assigned_objectives],
+            "crews" : [objective.serialize() for objective in self.assigned_objectives]
+            }
+
+    def get_crews(self):
+        return {
+            "crews": [
+                crew_sailor.get_crew() for crew_sailor in self.crew_sailors
+            ]
         }
 
 
@@ -95,17 +121,32 @@ class Crew(db.Model):
             "creator_id": self.creator_id
         } 
     
-    def get_missions_by_status(self):
-        return{
-            "completed": [mission.get_basic_info() for mission in self.missions if mission.completed_at],
-            "incompleted": [mission.get_basic_info() for mission in self.missions if not mission.completed_at]
-        }
     
     def get_basic_info(self):
         return {
             "id": self.id,
             "name": self.name
         }
+    
+    def get_contributions(self):
+        return {
+            "contributions": [contribution.get_basic_info() for contribution in self.contributions]
+        }
+    
+
+    def get_crew_sailors(self):
+        return {
+            "crew_sailors": [crew_sailor.get_sailor() for crew_sailor in self.crew_sailors]
+        }
+
+    def get_missions_by_status(self):
+        return{
+            "completed": [mission.get_basic_info() for mission in self.missions if mission.completed_at],
+            "incompleted": [mission.get_basic_info() for mission in self.missions if not mission.completed_at]
+        }
+    
+
+
 
 
 
@@ -116,6 +157,8 @@ class CrewSailor(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     is_admin: Mapped[bool] = mapped_column(Boolean(), default=False)
+    joined_at : Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
 
     #foreign keys
     sailor_id: Mapped[int] = mapped_column(ForeignKey("sailor.id"))
@@ -136,6 +179,19 @@ class CrewSailor(db.Model):
             "crew_id": self.crew_id
         }
     
+    def get_crew(self):
+        return {
+            "crew": self.crew.name,
+            "crew_id": self.crew_id,
+            "joined_at": self.joined_at.isoformat()
+        }
+    
+    def get_sailor(self):
+        return{
+            "sailor": self.sailor.sailor_name,
+            "sailor_id": self.sailor_id,
+            "joined_at": self.joined_at.isoformat()
+        }
 
 
     
@@ -155,8 +211,8 @@ class Mission(db.Model):
 
 
     #relationships
-    creator: Mapped["Sailor"] = relationship(back_populates="created_missions")
-    sailor_owner: Mapped["Sailor"] = relationship(back_populates="missions")
+    creator: Mapped["Sailor"] = relationship(foreign_keys=[creator_id], back_populates="created_missions")
+    sailor_owner: Mapped["Sailor"] = relationship(foreign_keys=[sailor_owner_id], back_populates="missions")
     crew_owner: Mapped["Crew"] = relationship(back_populates="missions")
     
     objectives: Mapped[List["Objective"]] = relationship(back_populates="mission")
@@ -177,6 +233,12 @@ class Mission(db.Model):
             "title": self.title,
             "description": self.description
         }
+    
+    def get_objectives(self):
+        return{
+            "objectives": [objective.get_info_for_mission for objective in self.objectives]
+        }
+
 
 
 
@@ -190,7 +252,7 @@ class Objective(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(String(120), nullable=False)
     is_crew: Mapped[bool]= mapped_column(Boolean(), default=False)
-    completed_ad : Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    completed_at : Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
 
     # foreign keys
     
@@ -213,7 +275,8 @@ class Objective(db.Model):
             "is_crew": self.is_crew,
             "owner": self.mission.sailor_owner.sailor_name if self.mission.sailor_owner else self.mission.crew_owner.name,
             "assigned_to_id": self.assigned_to_id,
-            "mission_id": self.mission_id
+            "mission_id": self.mission_id,
+            "mission_title": self.mission.title
         }
     
 
@@ -224,6 +287,14 @@ class Objective(db.Model):
             "mission_title": self.mission.title,
             "mission_id": self.mission_id
         }
+
+    def get_info_for_mission(self):
+        return{
+            "title": self.title,
+            "assigned_to": self.assigned_to_id,
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None
+        }
+
 
     def get_crew_id_owner(self):
         return self.mission.crew_owner_id
@@ -261,6 +332,12 @@ class ClaudeMission(db.Model):
     def get_contributions(self):
         return {
             "contributions": [contribution.get_basic_info() for contribution in self.contributions]
+        }
+    
+    def get_basic_info(self):
+        return {
+            "title": self.title,
+            "description": self.description
         }
 
 
@@ -306,7 +383,8 @@ class Contribution(db.Model):
     def get_basic_info(self):
         return {
             "claude_mission": self.claude_mission,
-            "contribution": self.contribution
+            "contribution": self.contribution,
+            "objective": self.claude_mission.objective
         }
 
 

@@ -1,5 +1,4 @@
 from flask import Blueprint, jsonify, request
-from api.models import Crew, CrewUser, User
 from api.extensions import db
 from sqlalchemy import select
 import uuid

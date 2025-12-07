@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request
 from sqlalchemy import select, or_
-from api.models import User
 from api.extensions import db
 
 
