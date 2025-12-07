@@ -8,6 +8,8 @@ from api.extensions import bcrypt
 from api.extensions import db
 from flask import jsonify
 import enum
+import string
+import random
 
 
 
@@ -99,7 +101,20 @@ class Sailor(db.Model):
 
 
 
+#Funciones para generar codigo de Crew -------------------------
 
+def generate_code():
+    chars = string.ascii_uppercase + string.digits
+    return ''.join(random.choice(chars) for _ in range(8))
+    
+def get_unique_crew_code():
+    while True:
+        code = generate_code()
+        exist_code = db.session.execute(select(Crew).where(Crew.code == code)).scalars().first()
+        if not exist_code: 
+            return code
+            
+#---------------------------------------------
 
 class Crew(db.Model):
 
@@ -107,6 +122,7 @@ class Crew(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, default=get_unique_crew_code)
 
     #foreign keys
     creator_id: Mapped[int]= mapped_column(ForeignKey("sailor.id"))
@@ -120,6 +136,7 @@ class Crew(db.Model):
     creator: Mapped["Sailor"] = relationship(back_populates="created_crews")
 
 
+
     def serialize(self):
         return {
             "id": self.id,
@@ -128,7 +145,8 @@ class Crew(db.Model):
             "crew_sailors_id": [sailor.sailor.id for sailor in self.crew_sailors],
             "contributions": [contribution.get_basic_info() for contribution in self.contributions],
             "missions": self.get_missions_by_status(),
-            "creator_id": self.creator_id
+            "creator_id": self.creator_id,
+            "code": self.code
         } 
     
     

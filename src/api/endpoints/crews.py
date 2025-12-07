@@ -31,7 +31,7 @@ def get_crews():
     if not crew:
         return jsonify({"message": "crew not found"}),404
     
-    return jsonify(crew.serialize())
+    return jsonify(crew.serialize()),200
 
 
 

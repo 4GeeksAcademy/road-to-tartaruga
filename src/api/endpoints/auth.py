@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from sqlalchemy import select, or_
 from api.extensions import jwt, db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from api.models import Sailor
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -21,37 +22,39 @@ def create_token():
     if not identifier:
         return jsonify({"message": "send an identifier to get identificated"}),400
     
-    user = db.session.execute(select(User).where(or_(User.username == identifier, User.email == identifier), User.is_active == True)).scalars().first()
+    sailor = db.session.execute(select(Sailor).where(or_(Sailor.sailor_name == identifier, Sailor.email == identifier), Sailor.is_active == True)).scalars().first()
 
-    if not user:
-        return jsonify({"message": "user not found" }),404
+    if not sailor:
+        return jsonify({"message": "sailor not found" }),404
     
     if not password:
         return jsonify({"message": "send a password to get identificated"}),400
     
+    if not isinstance(password, str):
+        password = str(password)
 
-    password_check = user.check_password(password)
+    password_check = sailor.check_password(password)
 
     if not password_check:
         return jsonify({"message": "invalid password"}),401
 
-    access_token = create_access_token(identity=user.user)
+    access_token = create_access_token(identity=sailor.sailor_name)
 
-    return jsonify({"token": access_token, "user_id": user.id, "username": user.username})
+    return jsonify({"token": access_token, "sailor_id": sailor.id, "sailor_name": sailor.sailor_name})
 
 
 @auth_bp.route("/private", methods=['POST'])
 @jwt_required()
 def private_access():
 
-    current_username= get_jwt_identity()
+    current_sailorname= get_jwt_identity()
 
-    user = db.session.execute(select(User).where(User.username == current_username)).scalars().first()
+    sailor = db.session.execute(select(Sailor).where(Sailor.sailor_name == current_sailorname)).scalars().first()
 
-    if not user:
+    if not sailor:
         return jsonify({"message": "invalid token"}),401
     
-    return jsonify({"id": user.id, "username" : user.username}),200
+    return jsonify({"id": sailor.id, "sailor_name" : sailor.sailor_name}),200
     
 
     
