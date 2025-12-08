@@ -197,21 +197,23 @@ class CrewSailor(db.Model):
     #foreign keys
     sailor_id: Mapped[int] = mapped_column(ForeignKey("sailor.id"))
     crew_id: Mapped[int] = mapped_column(ForeignKey("crew.id"))
-    status: Mapped[CrewSailorStatus] = mapped_column(Enum(CrewSailorStatus, name="crew_sailor_status"), nullable= False)
+    status: Mapped[CrewSailorStatus] = mapped_column(Enum(CrewSailorStatus, name="crew_sailor_status"), default=CrewSailorStatus.ACTIVE, nullable= False)
     
     
     #relationships
     sailor: Mapped["Sailor"] = relationship(back_populates="crew_sailors")
     crew: Mapped["Crew"] = relationship(back_populates="crew_sailors")
 
-
+    
 
     def serialize(self):
         return{
             "id": self.id,
             "is_captain": self.is_captain,
             "sailor_id": self.sailor_id,
-            "crew_id": self.crew_id
+            "crew_id": self.crew_id,
+            "joined_at" : self.joined_at.isoformat(),
+            "status": self.status.value
         }
     
     def get_crew(self):

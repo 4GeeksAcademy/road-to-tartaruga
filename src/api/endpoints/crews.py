@@ -83,8 +83,8 @@ def create_crew():
 
     created_crews_quantity = len(created_crews)
 
-    if created_crews_quantity >=3:
-        return jsonify({"message": "sailor crews created limit has been reached 3 of 3"}),404
+    if created_crews_quantity >= 2:
+        return jsonify({"message": "sailor crews created limit has been reached 2 of 2"}),404
 
     crew = Crew(name=name, creator_id=sailor_id)
 
