@@ -12,6 +12,7 @@ from api.endpoints.auth import auth_bp
 from api.endpoints.objectives import objectives_bp
 from api.endpoints.claude_missions import claude_missions_bp
 from api.endpoints.contributions import contributions_bp
+from api.endpoints.crew_sailors import crew_sailors_bp
 
 api = Blueprint('api', __name__)
 
@@ -25,6 +26,7 @@ api.register_blueprint(auth_bp)
 api.register_blueprint(objectives_bp)
 api.register_blueprint(claude_missions_bp)
 api.register_blueprint(contributions_bp)
+api.register_blueprint(crew_sailors_bp)
 
 
 @api.route('/hello', methods=['POST', 'GET'])
