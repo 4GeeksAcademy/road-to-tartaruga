@@ -120,15 +120,27 @@ def inactive_crew_sailor(cs_id):
 
 
 
-@crew_sailors_bp.route("/<int:cs_id_from>/<int:cs_id_to>/kick", methods=['PATCH'])
-def kick_crew_sailor(cs_id_from, cs_id_to):
+@crew_sailors_bp.route("/<int:sailor_from_id>/<int:sailor_to_id>/<int:crew_id>/kick", methods=['PATCH'])
+def kick_crew_sailor(sailor_from_id, sailor_to_id, crew_id):
+
+
+
+    crew = db.session.get(Crew, crew_id)
+
+    if not crew:
+        return jsonify({"message": "crew not found"}), 404
      
-    cs_to = db.session.get(CrewSailor, cs_id_to)
+    cs_to = db.session.execute(select(CrewSailor).where(CrewSailor.sailor_id == sailor_to_id, CrewSailor.crew_id == crew_id)).scalars().first()
 
     if not cs_to:
-        return jsonify({"message": "crew_sailor not found"}), 404
+        return jsonify({"message": "cs_to not found"}), 404
     
-    cs_from = db.session.get(CrewSailor, cs_id_from)
+    cs_from = db.session.execute(select(CrewSailor).where(CrewSailor.sailor_id == sailor_from_id, CrewSailor.crew_id == crew_id)).scalars().first()
+
+    if not cs_from:
+        return jsonify({"message": "cs_from not found"}), 404
+    
+    
 
     if not cs_from.is_captain:
         return jsonify({
@@ -138,6 +150,7 @@ def kick_crew_sailor(cs_id_from, cs_id_to):
     
     if cs_to.status != CrewSailorStatus.KICKED:
         cs_to.status = CrewSailorStatus.KICKED
+        db.session.commit()
         return jsonify({"message": "crew_sailor was sucessfully kicked"}), 200
 
     return jsonify({"message": "crew_sailor is already kicked"}), 400
@@ -145,10 +158,65 @@ def kick_crew_sailor(cs_id_from, cs_id_to):
 
 
 
-@crew_sailors_bp.route("/<int:cs_id>/captain", methods=['PATCH'])
-def captain_crew_sailor(crew_sailor_id):
-    crew_sailor_id = request.args.get("crew_sailor_id")
-    crew_sailor = db.session.get(CrewSailor, crew_sailor_id)
-    if not crew_sailor_id:
-        return jsonify({"message": "crew_sailor not found"}), 404
-    pass
+@crew_sailors_bp.route("/<int:actual_captain_id>/<int:sailor_id>/<int:crew_id>/captain", methods=['PATCH'])
+def captain_crew_sailor(actual_captain_id, sailor_id, crew_id):
+    
+    actual_captain = db.session.get(Sailor, actual_captain_id)
+
+    replace = request.args.get("replace", None)
+
+    
+
+    if not actual_captain:
+        return jsonify({"message": "sailor was not found with actual_captain_id"}), 404
+    
+    sailor = db.session.get(Sailor, sailor_id)
+
+    if not sailor:
+        return jsonify({"message": "sailor was not found with sailor_id"}), 404
+    
+    crew = db.session.get(Crew, crew_id)
+
+    if not crew:
+        return jsonify({"message": "crew was not found with crew_id"}), 404
+    
+
+    actual_captain_relation = db.session.execute(select(CrewSailor).where(CrewSailor.sailor_id == actual_captain_id, CrewSailor.crew_id == crew_id)).scalars().first()
+
+    if not actual_captain_relation:
+        return jsonify({"message": "actual captain has no relation with crew"}),404
+    
+    sailor_relation = db.session.execute(select(CrewSailor).where(CrewSailor.sailor_id == sailor_id, CrewSailor.crew_id == crew_id)).scalars().first()
+
+    if not sailor_relation:
+        return jsonify({"message": "sailor has no relation with this crew"}), 404
+    
+    if not actual_captain_relation.is_captain:
+        return jsonify({"message": "this sailor is not a captain"}), 404
+    
+
+    if replace:
+
+        sailor_is_actually_a_captain = sailor_relation.is_captain
+
+        if not sailor_is_actually_a_captain:
+
+
+            sailor_relation.is_captain = True
+            actual_captain_relation.is_captain = False
+            db.session.commit()
+            return jsonify({"captain_replaced": True, "message": "captain was sucessfully replaced"}), 200
+        
+        return jsonify({"captain_replaced": False, "message": "sailor already is captain"}),400
+    
+    crew_sailors = db.session.execute(select(CrewSailor).where(CrewSailor.crew_id == crew_id, CrewSailor.status == CrewSailorStatus.ACTIVE)).scalars().all()
+
+    if len(crew_sailors) < 5:
+        return jsonify({"message": f"just can be 2 captains if the crew has 5 sailors ({len(crew_sailors)} actual sailors)"}), 400
+    
+    sailor_relation.is_captain = True
+
+    db.session.commit()
+
+    return jsonify(sailor_relation.serialize()), 200
+    
