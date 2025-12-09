@@ -3,6 +3,7 @@ from sqlalchemy import select, or_
 from api.extensions import jwt, db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from api.models import Sailor
+from datetime import timedelta
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -38,7 +39,7 @@ def create_token():
     if not password_check:
         return jsonify({"message": "invalid password"}),401
 
-    access_token = create_access_token(identity=sailor.sailor_name)
+    access_token = create_access_token(identity=sailor.sailor_name, expires_delta=timedelta(minutes=30))
 
     return jsonify({"token": access_token, "sailor_id": sailor.id, "sailor_name": sailor.sailor_name})
 
@@ -56,5 +57,9 @@ def private_access():
     
     return jsonify({"id": sailor.id, "sailor_name" : sailor.sailor_name}),200
     
+
+@jwt.expired_token_loader
+def expired_token_callback(jwtheader,jwt_payload):
+    return jsonify({"message": "The toke has expire, log in again"}), 401
 
     

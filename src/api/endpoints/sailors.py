@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from sqlalchemy import select, or_
 from api.extensions import db
-from api.models import Sailor
+from api.models import Sailor, Contribution, ClaudeMission
 
 sailors_bp = Blueprint('sailors', __name__, url_prefix="/sailors")
 
@@ -37,27 +37,72 @@ def get_sailors():
 @sailors_bp.route("/", methods=['POST'])
 def create_sailor():
 
+    is_ocean_god = request.args.get("is_ocean_god")
+
     body = request.get_json()
     sailor_name = body.get("sailor_name")
     email = body.get("email")
     password = body.get("password")
+    cm_id = body.get("claude_mission_id")
+
+
+
 
     if not sailor_name or not email or not password:
         return jsonify({"message": "email, sailor_name and password are required fields"}), 400
-
-    exist_sailor = db.session.execute(select(Sailor).where(or_(Sailor.sailor_name == sailor_name, Sailor.email == email))).scalars().first()
-
-    if exist_sailor:
-        return jsonify({"message": "this sailor_name or email already exist"}),400
     
-
+    exist_sailor = db.session.execute(select(Sailor).where(or_(Sailor.sailor_name == sailor_name, Sailor.email == email))).scalars().first()
+    
+    if exist_sailor:
+            return jsonify({"message": "this sailor_name or email already exist"}),400
     
     sailor = Sailor(email=email, sailor_name=sailor_name)
-
     sailor.set_password(password)
 
+    if not is_ocean_god:
+
+        if not cm_id:
+            return jsonify({"message": "claude_mission_id is necessary to add crew contributions"}),400
+
+        claude_mission = db.session.get(ClaudeMission, cm_id)
+
+        if not claude_mission:
+            return jsonify({"message": "claude_misssion not found"}), 404
+
+
+        db.session.add(sailor)
+        db.session.commit()
+
+        contributions = Contribution(sailor_id=sailor.id, claude_mission_id=cm_id) 
+
+        db.session.add(contributions)
+
+        db.session.commit()    
+
+        return jsonify(sailor.get_basic_info()),200
+    
+    if cm_id:
+        claude_mission = db.session.get(ClaudeMission, cm_id)
+
+        if not claude_mission:
+            return jsonify({"message": "claude_misssion not found"}), 404
+        
+        sailor.is_ocean_god = True
+        db.session.add(sailor)
+        db.session.commit()
+
+        contributions = Contribution(sailor_id=sailor.id, claude_mission_id=cm_id) 
+
+        db.session.add(contributions)
+
+        db.session.commit()    
+
+        return jsonify(sailor.get_basic_info()), 200
+        
+
+    sailor.is_ocean_god = True
     db.session.add(sailor)
-    db.session.commit()    
+    db.session.commit()
 
     return jsonify(sailor.get_basic_info()),200
 

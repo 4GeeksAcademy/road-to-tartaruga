@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from api.extensions import db
 from sqlalchemy import select
 import uuid
-from api.models import Crew, CrewSailor, Sailor, CrewSailorStatus
+from api.models import Crew, CrewSailor, Sailor, CrewSailorStatus, Contribution, ClaudeMission
 
 
 #Genera codigo de invitacion irrepetible
@@ -42,6 +42,15 @@ def create_crew():
 
     sailor_id = body.get("sailor_id", None)
     name = body.get("name")
+    cm_id = body.get("claude_mission_id", None)
+
+    if not cm_id:
+        return jsonify({"message": "claude_mission_id is necessary to add crew contributions"}),400
+
+    claude_mission = db.session.get(ClaudeMission, cm_id)
+
+    if not claude_mission:
+        return jsonify({"message": "claude_misssion not found"}), 404
 
     if not sailor_id and not name:
         return jsonify({
@@ -86,9 +95,14 @@ def create_crew():
     if created_crews_quantity >= 2:
         return jsonify({"message": "sailor crews created limit has been reached 2 of 2"}),404
 
-    crew = Crew(name=name, creator_id=sailor_id)
+    crew = Crew(name=name, creator_id=sailor_id, creator_name=sailor.sailor_name)
 
     db.session.add(crew)
+    db.session.commit()
+
+    contributions = Contribution(crew_id= crew.id, claude_mission_id=cm_id, is_crew=True) 
+
+    db.session.add(contributions)
     db.session.commit()
 
     crew_id = crew.id

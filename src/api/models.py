@@ -26,10 +26,10 @@ class Sailor(db.Model):
     #relationships
 
     crew_sailors : Mapped[List["CrewSailor"]] = relationship(back_populates="sailor")
-    contributions : Mapped[List["Contribution"]] = relationship(back_populates="sailor")
+    contributions : Mapped[List["Contribution"]] = relationship(back_populates="sailor", cascade="all, delete-orphan")
     created_crews : Mapped[List["Crew"]] = relationship(back_populates="creator")
     created_missions : Mapped[List["Mission"]] = relationship(foreign_keys="Mission.creator_id", back_populates="creator")
-    missions : Mapped[List["Mission"]] = relationship(foreign_keys="Mission.sailor_owner_id", back_populates="sailor_owner")
+    missions : Mapped[List["Mission"]] = relationship(foreign_keys="Mission.sailor_owner_id", back_populates="sailor_owner", cascade="all, delete-orphan")
     assigned_objectives: Mapped[List["Objective"]] = relationship(back_populates="assigned_to")
     claude_missions_created: Mapped[List["ClaudeMission"]] = relationship(back_populates="creator")
 
@@ -59,7 +59,8 @@ class Sailor(db.Model):
         return{
             "id": self.id,
             "sailor_name": self.sailor_name,
-            "email": self.email
+            "email": self.email,
+            "is_ocean_god": self.is_ocean_god
         }
 
     def get_contributions(self):
@@ -125,7 +126,8 @@ class Crew(db.Model):
     code: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, default=get_unique_crew_code)
 
     #foreign keys
-    creator_id: Mapped[int]= mapped_column(ForeignKey("sailor.id"))
+    creator_id: Mapped[int]= mapped_column(ForeignKey("sailor.id"), nullable=True)
+    creator_name : Mapped[str] = mapped_column(String(120), nullable=False)
 
     #relationships
 
@@ -167,10 +169,12 @@ class Crew(db.Model):
             "crew_sailors": [crew_sailor.get_sailor() for crew_sailor in self.crew_sailors]
         }
 
-    def get_missions_by_status(self):
+    def get_missions_by_state(self):
         return{
-            "completed": [mission.get_basic_info() for mission in self.missions if mission.completed_at],
-            "incompleted": [mission.get_basic_info() for mission in self.missions if not mission.completed_at]
+            "missions":{
+                "completed": [mission.get_basic_info() for mission in self.missions if mission.completed_at],
+                "incompleted": [mission.get_basic_info() for mission in self.missions if not mission.completed_at]
+                }
         }
     
 
@@ -252,7 +256,7 @@ class Mission(db.Model):
     sailor_owner: Mapped["Sailor"] = relationship(foreign_keys=[sailor_owner_id], back_populates="missions")
     crew_owner: Mapped["Crew"] = relationship(back_populates="missions")
     
-    objectives: Mapped[List["Objective"]] = relationship(back_populates="mission")
+    objectives: Mapped[List["Objective"]] = relationship(back_populates="mission", cascade="all, delete-orphan")
 
 
 
@@ -260,7 +264,7 @@ class Mission(db.Model):
         return{
             "id": self.id,
             "title": self.title,
-            "description": self.title,
+            "description": self.description,
             "owner": self.sailor_owner.sailor_name if self.sailor_owner else self.crew_owner.name,
             "owner_id": self.sailor_owner_id if self.sailor_owner_id else self.crew_owner_id
         }
@@ -274,7 +278,7 @@ class Mission(db.Model):
     
     def get_objectives(self):
         return{
-            "objectives": [objective.get_info_for_mission for objective in self.objectives]
+            "objectives": [objective.get_info_for_mission() for objective in self.objectives]
         }
 
 
@@ -296,7 +300,7 @@ class Objective(db.Model):
     
   
     mission_id : Mapped[int] = mapped_column(ForeignKey("mission.id"), nullable=False)
-    assigned_to_id : Mapped[int] = mapped_column(ForeignKey("sailor.id"), nullable=False)
+    assigned_to_id : Mapped[int] = mapped_column(ForeignKey("sailor.id"), nullable=True)
     
 
     #relationships
@@ -424,5 +428,16 @@ class Contribution(db.Model):
             "contribution": self.contribution,
             "objective": self.claude_mission.objective
         }
+    
+    def increase_contribution_crew(self):
+        self.contribution = self.contribution + 10
+        db.session.commit()
+        return {"contribution": self.contribution}
+    
+    def increase_contribution_sailor(self):
+        self.contribution = self.contributions + 1
+        db.session.commit()
+        return {"contribution": self.contribution}
+
 
 

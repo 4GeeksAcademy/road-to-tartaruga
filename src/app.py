@@ -39,6 +39,7 @@ jwt.init_app(app)
 
 app.config['JWT_SECRET_KEY'] = "supercalifragilisticoespialidoso"
 
+
 # add the admin
 setup_admin(app)
 
