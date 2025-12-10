@@ -146,7 +146,7 @@ class Crew(db.Model):
             "crew_sailors": [crew_sailor.sailor.sailor_name for crew_sailor in self.crew_sailors],
             "crew_sailors_id": [sailor.sailor.id for sailor in self.crew_sailors],
             "contributions": [contribution.get_basic_info() for contribution in self.contributions],
-            "missions": self.get_missions_by_status(),
+            "missions": self.get_missions_by_state(),
             "creator_id": self.creator_id,
             "code": self.code
         } 
@@ -266,11 +266,13 @@ class Mission(db.Model):
             "title": self.title,
             "description": self.description,
             "owner": self.sailor_owner.sailor_name if self.sailor_owner else self.crew_owner.name,
-            "owner_id": self.sailor_owner_id if self.sailor_owner_id else self.crew_owner_id
+            "owner_id": self.sailor_owner_id if self.sailor_owner_id else self.crew_owner_id,
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None
         }
     
     def get_basic_info(self):
         return{
+            "id": self.id,
             "title": self.title,
             "description": self.description,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None
