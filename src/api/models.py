@@ -89,8 +89,14 @@ class Sailor(db.Model):
     
     def get_assigned_objectives(self):
         return {
-            "individuals": [objective.get_basic_info() for objective in self.assigned_objectives],
-            "crews" : [objective.serialize() for objective in self.assigned_objectives]
+            "individuals": {
+                "completed": [objective.get_basic_info() for objective in self.assigned_objectives if objective.is_crew is False and objective.completed_at is not None],
+                "incompleted": [objective.get_basic_info() for objective in self.assigned_objectives if objective.is_crew is False and objective.completed_at is  None]
+            },
+            "crews" : 
+            {"completed":  [objective.serialize() for objective in self.assigned_objectives if objective.is_crew is not False and objective.completed_at is not None] ,
+             "incompleted": [objective.serialize() for objective in self.assigned_objectives if objective.is_crew is not False and objective.completed_at is  None]}
+           
             }
 
     def get_crews(self):
@@ -329,8 +335,10 @@ class Objective(db.Model):
             "id": self.id,
             "title": self.title,
             "mission_title": self.mission.title,
-            "mission_id": self.mission_id
+            "mission_id": self.mission_id,
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None
         }
+    
 
     def get_info_for_mission(self):
         return{
