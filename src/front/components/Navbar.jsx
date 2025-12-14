@@ -33,8 +33,11 @@ export const Navbar = () => {
 					<Link to="/claude-missions">
 						<button className="btn btn-primary">Claude missions</button>
 					</Link>
-					<Link to="/auth">
-						<button className="btn btn-primary">Authentication</button>
+					<Link to="/auth" state={{login: true}}>
+						<button className="btn btn-primary">Ingresar</button>
+					</Link>
+					<Link to="/auth" state={{login: false}}>
+						<button className="btn btn-primary">Registro</button>
 					</Link>
 					<Link to="/jamon-serrano">
 						<button className="btn btn-primary">Not found</button>
