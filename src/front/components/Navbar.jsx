@@ -6,11 +6,41 @@ export const Navbar = () => {
 		<nav className="navbar navbar-light bg-light">
 			<div className="container">
 				<Link to="/">
-					<span className="navbar-brand mb-0 h1">React Boilerplate</span>
+					<span className="navbar-brand mb-0 h1">Home</span>
 				</Link>
 				<div className="ml-auto">
-					<Link to="/demo">
-						<button className="btn btn-primary">Check the Context in action</button>
+					<Link to="/about-me">
+						<button className="btn btn-primary">About me</button>
+					</Link>
+					<Link to="/about-tartaruga">
+						<button className="btn btn-primary">About Tartaruga</button>
+					</Link>
+					<Link to="/my-profile">
+						<button className="btn btn-primary">My profile</button>
+					</Link>
+					<Link to="/my-missions">
+						<button className="btn btn-primary">My missions</button>
+					</Link>
+					<Link to="/my-crews">
+						<button className="btn btn-primary">My crews</button>
+					</Link>
+					<Link to="/my-contributions">
+						<button className="btn btn-primary">My contributions</button>
+					</Link>
+					<Link to="/crew">
+						<button className="btn btn-primary">Crew</button>
+					</Link>
+					<Link to="/claude-missions">
+						<button className="btn btn-primary">Claude missions</button>
+					</Link>
+					<Link to="/auth">
+						<button className="btn btn-primary">Authentication</button>
+					</Link>
+					<Link to="/jamon-serrano">
+						<button className="btn btn-primary">Not found</button>
+					</Link>
+					<Link to="/auth-need">
+						<button className="btn btn-primary">Need Auth</button>
 					</Link>
 				</div>
 			</div>
