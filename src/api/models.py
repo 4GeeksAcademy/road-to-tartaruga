@@ -22,6 +22,7 @@ class Sailor(db.Model):
     password_hash: Mapped[str] = mapped_column(nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=True)
     is_ocean_god : Mapped[bool] = mapped_column(Boolean(), nullable=False, default=False)
+    profile_photo : Mapped[str] = mapped_column(String(200), nullable=False)
 
     #relationships
 
@@ -44,7 +45,8 @@ class Sailor(db.Model):
             "is_ocean_god": self.is_ocean_god,
             "crews": [crew_sailor.crew.get_basic_info() for crew_sailor in self.crew_sailors],
             "missions" : self.get_missions_by_state(),
-            "assigned_objectives": self.get_assigned_objectives()
+            "assigned_objectives": self.get_assigned_objectives(),
+            "profile_photo": self.profile_photo
         }
         
 
@@ -60,7 +62,8 @@ class Sailor(db.Model):
             "id": self.id,
             "sailor_name": self.sailor_name,
             "email": self.email,
-            "is_ocean_god": self.is_ocean_god
+            "is_ocean_god": self.is_ocean_god,
+            "profile_photo": self.profile_photo
         }
 
     def get_contributions(self):

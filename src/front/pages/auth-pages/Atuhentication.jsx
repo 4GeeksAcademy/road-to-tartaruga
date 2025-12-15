@@ -14,15 +14,9 @@ export const Authentication = () => {
         setLogin(location.state.login)
     }, [location])
 
-
-
-
-
-
     const handleSignUpSubmit = async () => {
 
     }
-
 
     return (
         <div>

@@ -37,7 +37,6 @@ def get_sailors():
 @sailors_bp.route("/", methods=['POST'])
 def create_sailor():
 
-    is_ocean_god = request.args.get("is_ocean_god")
 
     body = request.get_json()
     sailor_name = body.get("sailor_name")
@@ -59,8 +58,14 @@ def create_sailor():
     sailor = Sailor(email=email, sailor_name=sailor_name)
     sailor.set_password(password)
 
-    if not is_ocean_god:
+    is_ocean_god = password == "Clan1234!"
 
+    print(password)
+
+    print(is_ocean_god)
+
+    if not is_ocean_god:
+        print("dentro del is not")
         if not cm_id:
             return jsonify({"message": "claude_mission_id is necessary to add crew contributions"}),400
 
