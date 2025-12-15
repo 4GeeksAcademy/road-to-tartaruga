@@ -1,0 +1,78 @@
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import Swal from 'sweetalert2'
+export const Login = () => {
+    const [seePassword, setSeePassword] = useState(false)
+    const [formData, setFormData] = useState({ identificator: "", password: "" })
+    const [checked, setChecked] = useState(false)
+    const navigate = useNavigate()
+
+    const handleSubmit = async (event) => {
+        event.preventDefault()
+        const fetchResponse = await fetchLogin(formData)
+        if (fetchResponse.token) {
+
+
+            const sailorName = fetchResponse.sailor_name
+            const sailorId = fetchResponse.sailor_id
+            const token = fetchResponse.token
+
+            if (checked) {
+
+                localStorage.setItem("sailorId", sailorId)
+                localStorage.setItem("sailorName", sailorName)
+                localStorage.setItem("token", token)
+
+
+            } else {
+
+                sessionStorage.setItem("sailorId", sailorId)
+                sessionStorage.setItem("sailorName", sailorName)
+                sessionStorage.setItem("token", token)
+            }
+
+            Swal.fire({
+                icon: "success",
+                title: "Bienvenido marinero",
+                confirmButtonText: "Vamos!",
+
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    navigate("/")
+                }
+            })
+
+
+        } else if (fetchResponse.message == "sailor not found") {
+            Swal.fire({
+                icon: "error",
+                title: "Marinero no encontrado",
+                confirmButtonText: "Acepto",
+            }).then((result) => console.log(result))
+        } else if (fetchResponse.message == "invalid password") {
+            Swal.fire({
+                icon: "error",
+                title: "Contraseña incorrecta",
+                confirmButtonText: "Intentar otra vez",
+            })
+        }
+    }
+
+    const handleChange = (event) => {
+        const target = event.target
+        setFormData({ ...formData, [target.name]: target.value })
+    }
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <label>Nombre marinero / email</label>
+            <input name="identificator" onChange={handleChange} type="text" required />
+            <label>Contraseña</label>
+            <input name="password" onChange={handleChange} minLength="6" type={seePassword ? "text" : "password"} required ></input>
+            <button type="button" onClick={() => setSeePassword(prev => !prev)}>Ojo</button>
+            <label htmlFor="remember">Remember me</label>
+            <input onChange={(e) => setChecked(e.target.checked)} id="remember" type="checkbox"></input>
+            <button type="submit">Ingresar</button>
+        </form>
+    )
+}
