@@ -1,30 +1,57 @@
 // Import necessary components and functions from react-router-dom.
 
 import {
-    createBrowserRouter,
-    createRoutesFromElements,
-    Route,
+  BrowserRouter,
+  Route,
+  Routes,
 } from "react-router-dom";
-import { Layout } from "./pages/Layout";
-import { Home } from "./pages/Home";
-import { Single } from "./pages/Single";
-import { Demo } from "./pages/Demo";
+import { PublicLayout } from "./layouts/PublicLayout";
+import { Home } from "./pages/public-pages/Home";
+import { AboutMe } from "./pages/public-pages/AboutMe";
+import { AboutTartaruga } from "./pages/public-pages/AboutTartaruga";
+import { PrivateLayout } from "./layouts/PrivateLayout";
+import { AuthLayout } from "./layouts/AuthLayout";
+import { MyProfile } from "./pages/private-pages/MyProfile";
+import { MyMissions } from "./pages/private-pages/MyMissions";
+import { MyCrews } from "./pages/private-pages/MyCrews";
+import { MyContributions } from "./pages/private-pages/MyContributions";
+import { Crew } from "./pages/private-pages/Crew";
+import { ClaudeMissions } from "./pages/private-pages/ClaudeMissions";
+import { Authentication } from "./pages/auth-pages/Atuhentication";
+import { NotFound } from "./pages/public-pages/NotFound";
+import { AuthNeed } from "./pages/public-pages/AuthNeed";
 
-export const router = createBrowserRouter(
-    createRoutesFromElements(
-    // CreateRoutesFromElements function allows you to build route elements declaratively.
-    // Create your routes here, if you want to keep the Navbar and Footer in all views, add your new routes inside the containing Route.
-    // Root, on the contrary, create a sister Route, if you have doubts, try it!
-    // Note: keep in mind that errorElement will be the default page when you don't get a route, customize that page to make your project more attractive.
-    // Note: The child paths of the Layout element replace the Outlet component with the elements contained in the "element" attribute of these child paths.
+export const TartarugaRoutes = () =>{
+return(
 
-      // Root Route: All navigation will start from here.
-      <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>} >
+  <BrowserRouter>
+  <Routes>
 
-        {/* Nested Routes: Defines sub-routes within the BaseHome component. */}
-        <Route path= "/" element={<Home />} />
-        <Route path="/single/:theId" element={ <Single />} />  {/* Dynamic route for single items */}
-        <Route path="/demo" element={<Demo />} />
+      <Route  path="/" element={<PublicLayout/>} >
+        <Route index element={<Home />} />
+        <Route path="about-me" element={<AboutMe />} />
+        <Route path="about-tartaruga" element={<AboutTartaruga />} />
+        <Route path="*" element={<NotFound/>} />
+        <Route path="auth-need" element={<AuthNeed/>} />
+        
+        
       </Route>
-    )
-);
+
+      <Route  element={<PrivateLayout/>}>
+        <Route path="my-profile" element={<MyProfile/>} />
+        <Route path="my-missions" element={<MyMissions/>} />
+        <Route path="my-crews" element={<MyCrews/>} />
+        <Route path="my-contributions" element={<MyContributions/>} />
+        <Route path="crew" element={<Crew/>} />
+        <Route path="claude-missions" element={<ClaudeMissions/>} />
+      </Route>
+
+      <Route element={<AuthLayout/>}>
+        <Route path="auth" element={<Authentication/>} />
+      </Route>
+
+    </Routes>
+  </BrowserRouter>
+  )
+    }
+ 

@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, func
 from api.extensions import jwt, db
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from api.models import Sailor
@@ -12,18 +12,22 @@ def create_token():
 
     body = request.get_json()
 
-    identifier = body.get("identifier", None) 
-    
+    identificator = body.get("identificator", None) 
     
     password = body.get("password")
 
-    if not identifier and not password:
+
+    
+    if not identificator and not password:
         return jsonify({"message": "send credentials to get the token"}),400
     
-    if not identifier:
-        return jsonify({"message": "send an identifier to get identificated"}),400
+    if not identificator:
+        return jsonify({"message": "send an identificator to get identificated"}),400
     
-    sailor = db.session.execute(select(Sailor).where(or_(Sailor.sailor_name == identifier, Sailor.email == identifier), Sailor.is_active == True)).scalars().first()
+    identificator = identificator.replace(" ", "")
+    
+    sailor = db.session.execute(select(Sailor).where(or_(func.lower(Sailor.sailor_name) == identificator.lower() , func.lower(Sailor.email) == identificator.lower()), Sailor.is_active.is_(True))).scalars().first()
+
 
     if not sailor:
         return jsonify({"message": "sailor not found" }),404
@@ -33,6 +37,9 @@ def create_token():
     
     if not isinstance(password, str):
         password = str(password)
+        
+    if len(password) < 6:
+        return jsonify({"message": "password must be 6 or more characters"}), 400
 
     password_check = sailor.check_password(password)
 
