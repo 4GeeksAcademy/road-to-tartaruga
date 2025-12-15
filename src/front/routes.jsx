@@ -20,8 +20,26 @@ import { ClaudeMissions } from "./pages/private-pages/ClaudeMissions";
 import { Authentication } from "./pages/auth-pages/Atuhentication";
 import { NotFound } from "./pages/public-pages/NotFound";
 import { AuthNeed } from "./pages/public-pages/AuthNeed";
+import { useEffect } from "react";
+import { fetchPrivate } from "./services/authServices";
+import useGlobalReducer from "./hooks/useGlobalReducer";
 
 export const TartarugaRoutes = () =>{
+
+  const {dispatch} = useGlobalReducer()
+
+  const updateLogin = async() =>{
+		const storage = localStorage.length == 0 ? sessionStorage : localStorage
+		const token = storage.token
+		const responseFetchPrivate = await fetchPrivate(token)
+		dispatch({type: "login", payload: responseFetchPrivate})
+	}
+
+
+	useEffect(()=>{
+		updateLogin()
+	},[])
+
 return(
 
   <BrowserRouter>

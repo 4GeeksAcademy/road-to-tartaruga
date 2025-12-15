@@ -10,9 +10,11 @@ export const AuthLayout = () => {
 
     const {store} = useGlobalReducer()
     const navigate = useNavigate()
-
+     const storage = localStorage.length == 0 ? sessionStorage : localStorage
+    const token = storage.token
+    
     useEffect(()=>{
-        if(store.login){
+        if(token){
             navigate("/")
         }
     })

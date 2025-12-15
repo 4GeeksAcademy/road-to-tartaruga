@@ -36,14 +36,16 @@ export const Login = () => {
                 sessionStorage.setItem("token", token)
             }
 
+            const isOceanGod = fetchResponse.is_ocean_god
+
             Swal.fire({
                 icon: "success",
-                title: "Bienvenido marinero",
+                title: `Bienvenido ${isOceanGod ? "señor Dios del Oceano!": "querido Marinero!"}`,
                 confirmButtonText: "Vamos!",
 
             }).then((result) => {
                 if (result.isConfirmed) {
-                    dispatch({type:"login"})
+                    dispatch({type:"login", payload: true})
                     
                     navigate("/")
                 }

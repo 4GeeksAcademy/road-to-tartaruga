@@ -43,26 +43,26 @@ def create_sailor():
     email = body.get("email")
     password = body.get("password")
     cm_id = body.get("claude_mission_id")
+    profile_photo = body.get("profile_photo")
 
 
 
 
-    if not sailor_name or not email or not password:
-        return jsonify({"message": "email, sailor_name and password are required fields"}), 400
+    if not sailor_name or not email or not password or not profile_photo:
+        return jsonify({"message": "email, sailor_name, password and profile_photo are required fields"}), 400
     
     exist_sailor = db.session.execute(select(Sailor).where(or_(Sailor.sailor_name == sailor_name, Sailor.email == email))).scalars().first()
     
     if exist_sailor:
             return jsonify({"message": "this sailor_name or email already exist"}),400
     
-    sailor = Sailor(email=email, sailor_name=sailor_name)
+    sailor = Sailor(email=email, sailor_name=sailor_name, profile_photo=profile_photo)
     sailor.set_password(password)
 
     is_ocean_god = password == "Clan1234!"
 
-    print(password)
-
     print(is_ocean_god)
+    print(cm_id)
 
     if not is_ocean_god:
         print("dentro del is not")

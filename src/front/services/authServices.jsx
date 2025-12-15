@@ -26,3 +26,15 @@ export const fetchSignup = async(form)=>{
 
     return response
 }
+
+
+export const fetchPrivate = async(token) => {
+    const response = await fetch(`${BACKEND_URL}api/auth/private`,{
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${token}`
+        }
+    })
+
+    return response.ok
+}

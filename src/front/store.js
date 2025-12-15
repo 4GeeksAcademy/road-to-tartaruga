@@ -7,7 +7,7 @@ export const initialStore=()=>{
 export default function storeReducer(store, action = {}) {
   switch(action.type){
    case 'login':
-    return {...store, login: !store.login}
+    return {...store, login: action.payload}
     default:
       throw Error('Unknown action.');
   }    
