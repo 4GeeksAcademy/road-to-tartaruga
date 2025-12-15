@@ -1,6 +1,16 @@
 import { Link } from "react-router-dom";
+import useGlobalReducer from "../hooks/useGlobalReducer";
 
 export const Navbar = () => {
+
+	const { store, dispatch } = useGlobalReducer()
+
+
+	const handleLogOut = () =>{
+		const storage = localStorage.length == 0 ? sessionStorage : localStorage
+		storage.clear()
+		dispatch({type: "login"})
+	}
 
 	return (
 		<nav className="navbar navbar-light bg-light">
@@ -33,12 +43,21 @@ export const Navbar = () => {
 					<Link to="/claude-missions">
 						<button className="btn btn-primary">Claude missions</button>
 					</Link>
-					<Link to="/auth" state={{login: true}}>
-						<button className="btn btn-primary">Ingresar</button>
-					</Link>
-					<Link to="/auth" state={{login: false}}>
-						<button className="btn btn-primary">Registro</button>
-					</Link>
+
+					{store.login ?
+
+							<button onClick={handleLogOut} className="btn btn-danger">Salir</button>
+						:
+						<>
+							<Link to="/auth" state={{ login: true }}>
+								<button className="btn btn-primary">Ingresar</button>
+							</Link>
+							<Link to="/auth" state={{ login: false }}>
+								<button className="btn btn-primary">Registro</button>
+							</Link>
+						</>
+					}
+
 					<Link to="/jamon-serrano">
 						<button className="btn btn-primary">Not found</button>
 					</Link>

@@ -24,5 +24,5 @@ export const fetchSignup = async(form)=>{
         body: JSON.stringify(form)
     })
 
-    console.log(response)
+    return response
 }

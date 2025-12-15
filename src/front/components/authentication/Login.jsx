@@ -1,8 +1,13 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Swal from 'sweetalert2'
+import { fetchLogin } from "../../services/authServices"
+import useGlobalReducer from "../../hooks/useGlobalReducer"
+
 export const Login = () => {
     const [seePassword, setSeePassword] = useState(false)
+    const {dispatch} = useGlobalReducer()
+
     const [formData, setFormData] = useState({ identificator: "", password: "" })
     const [checked, setChecked] = useState(false)
     const navigate = useNavigate()
@@ -38,6 +43,8 @@ export const Login = () => {
 
             }).then((result) => {
                 if (result.isConfirmed) {
+                    dispatch({type:"login"})
+                    
                     navigate("/")
                 }
             })
@@ -48,7 +55,7 @@ export const Login = () => {
                 icon: "error",
                 title: "Marinero no encontrado",
                 confirmButtonText: "Acepto",
-            }).then((result) => console.log(result))
+            })
         } else if (fetchResponse.message == "invalid password") {
             Swal.fire({
                 icon: "error",

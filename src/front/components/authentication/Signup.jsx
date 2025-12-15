@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react"
 import Swal from 'sweetalert2'
+import { fetchSignup } from "../../services/authServices"
+import { useNavigate } from "react-router-dom"
 export const Signup = () => {
 
     const [seePassword, setSeePassword] = useState(false)
+    const navigate = useNavigate()
     const [seeConfirmPassword, setSeeConfirmPassword] = useState(false)
     const [formData, setFormData] = useState(
         {
@@ -19,12 +22,11 @@ export const Signup = () => {
         const target = event.target
         const value = target.value
         const name = target.name
-
         setFormData({...formData, [name] : value})
     }
 
 
-    const handleSubmit = (event) =>{
+    const handleSubmit = async(event) =>{
         event.preventDefault()
         const target = event.target
         const password = target[2].value
@@ -36,8 +38,30 @@ export const Signup = () => {
                 confirmButtonText : "Intentar otra vez",
                 icon: "error"
             })
+            return
         }
-
+        const response = await fetchSignup(formData)
+        if(response.status == 200){
+             Swal.fire({
+                title: "Marinero creado correctamente",
+                confirmButtonText : "Vamos!",
+                icon: "success"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    navigate("/auth", {
+                        state: {
+                            login: true
+                        }
+                    })
+                }
+            })
+        }else if(response.status == 400){
+            Swal.fire({
+                title: "Ya existe un marinero con dicho email o nombre",
+                confirmButtonText: "Está bien",
+                icon: "error"
+            })
+        } 
 
     }
  

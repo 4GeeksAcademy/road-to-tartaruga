@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import { fetchLogin } from "../../services/authServices"
 
 import { Navigate, useLocation, useNavigate } from "react-router-dom"
 import { Login } from "../../components/authentication/Login"
