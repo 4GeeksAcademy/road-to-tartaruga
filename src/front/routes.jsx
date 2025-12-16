@@ -25,81 +25,97 @@ import { fetchPrivate } from "./services/authServices";
 import useGlobalReducer from "./hooks/useGlobalReducer";
 import Swal from 'sweetalert2'
 
-export const TartarugaRoutes = () =>{
+export const TartarugaRoutes = () => {
 
-  const {dispatch,store, redirect, redirectOff} = useGlobalReducer()
+  const { dispatch, store, redirect, redirectOff } = useGlobalReducer()
 
-  const updateLogin = async() =>{
-		const storage = localStorage.length == 0 ? sessionStorage : localStorage
-		const token = storage.token
-		const responseFetchPrivate = await fetchPrivate(token)
-		dispatch({type: "login", payload: responseFetchPrivate})
-	}
-
-
-	useEffect(()=>{
-		updateLogin()
-	},[])
+  const updateLogin = async () => {
+    const storage = localStorage.length == 0 ? sessionStorage : localStorage
+    const token = storage.token
+    const responseFetchPrivate = await fetchPrivate(token)
+    dispatch({ type: "login", payload: responseFetchPrivate })
+  }
 
 
+  useEffect(() => {
+    updateLogin()
+  }, [])
 
-  const swalRedirect = async(dependence) =>{
-  
 
-    if(dependence){
-       Swal.fire({
+
+  const swalRedirect = async (dependence) => {
+    if (dependence) {
+      Swal.fire({
         title: "Redirigiendo...",
-        html : `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>`,
+        html: `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>`,
         timer: 1000,
         showConfirmButton: false,
         allowOutsideClick: false,
         allowEscapeKey: false
-      }).then(()=>{
+      }).then(() => {
         redirectOff()
       })
-
     }
-    
-
   }
 
-  useEffect(()=>{
-
-swalRedirect(store.redirecting)
-
-  },[store.redirecting])
-
-return(
-
-  <BrowserRouter>
-  
-  <Routes>
-
-      <Route  path="/" element={<PublicLayout/>} >
-        <Route index element={<Home />} />
-        <Route path="about-me" element={<AboutMe />} />
-        <Route path="about-tartaruga" element={<AboutTartaruga />} />
-        <Route path="*" element={<NotFound/>} />
-        <Route path="auth-need" element={<AuthNeed/>} />
-        
-        
-      </Route>
-
-      <Route  element={<PrivateLayout/>}>
-        <Route path="my-profile" element={<MyProfile/>} />
-        <Route path="my-missions" element={<MyMissions/>} />
-        <Route path="my-crews" element={<MyCrews/>} />
-        <Route path="my-contributions" element={<MyContributions/>} />
-        <Route path="crew" element={<Crew/>} />
-        <Route path="claude-missions" element={<ClaudeMissions/>} />
-      </Route>
-
-      <Route element={<AuthLayout/>}>
-        <Route path="auth" element={<Authentication/>} />
-      </Route>
-
-    </Routes>
-  </BrowserRouter>
-  )
+  const swalLoading = async (dependence) => {
+    
+    const loadingSwal = Swal.mixin({
+      title: "Cargando...",
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false
+    })
+    if (dependence) {
+      loadingSwal.fire({
+        html: `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>`,
+      })
+    } else {
+      loadingSwal.close()
     }
- 
+  }
+
+
+  useEffect(() => {
+
+    swalRedirect(store.redirecting)
+
+  }, [store.redirecting])
+
+  useEffect(() => {
+    swalLoading(store.loading)
+  }, [store.loading])
+
+  return (
+
+    <BrowserRouter>
+
+      <Routes>
+
+        <Route path="/" element={<PublicLayout />} >
+          <Route index element={<Home />} />
+          <Route path="about-me" element={<AboutMe />} />
+          <Route path="about-tartaruga" element={<AboutTartaruga />} />
+          <Route path="*" element={<NotFound />} />
+          <Route path="auth-need" element={<AuthNeed />} />
+
+
+        </Route>
+
+        <Route element={<PrivateLayout />}>
+          <Route path="my-profile" element={<MyProfile />} />
+          <Route path="my-missions" element={<MyMissions />} />
+          <Route path="my-crews" element={<MyCrews />} />
+          <Route path="my-contributions" element={<MyContributions />} />
+          <Route path="crew" element={<Crew />} />
+          <Route path="claude-missions" element={<ClaudeMissions />} />
+        </Route>
+
+        <Route element={<AuthLayout />}>
+          <Route path="auth" element={<Authentication />} />
+        </Route>
+
+      </Routes>
+    </BrowserRouter>
+  )
+}

@@ -5,12 +5,13 @@ import { useNavigate } from "react-router-dom"
 import { BACKEND_URL } from "../../main"
 import useGlobalReducer from "../../hooks/useGlobalReducer"
 import { uploadToCloudinary } from "../../services/cloudinaryServices"
+import storeReducer from "../../store"
 
 
 export const Signup = () => {
 
 
-    const { load } = useGlobalReducer()
+    const { load, store } = useGlobalReducer()
     const [seePassword, setSeePassword] = useState(false)
     const navigate = useNavigate()
     const [includeCM, setIncludeCM] = useState(true)
@@ -30,7 +31,7 @@ export const Signup = () => {
         }
     )
 
-   
+
 
     const handleProfilePhoto = async (event) => {
         const selected = event.target.files[0]
@@ -73,7 +74,7 @@ export const Signup = () => {
         const target = event.target
         const password = target[6].value
         const confirmPassword = target[8].value
-       
+
         if (confirmPassword != password) {
             Swal.fire({
                 title: "Las contraseñas no coinciden",
@@ -85,7 +86,7 @@ export const Signup = () => {
 
         const profilePhoto = formData.profile_photo
 
-        if(!profilePhoto){
+        if (!profilePhoto) {
             Swal.fire({
                 title: "Elige una foto de perfil",
                 confirmButtonText: "Está bien",
@@ -101,28 +102,37 @@ export const Signup = () => {
 
         load()
         const response = await fetchSignup(payload)
-        await load()
-        if (response.status == 200) {
-            Swal.fire({
-                title: "Marinero creado correctamente",
-                confirmButtonText: "Vamos!",
-                icon: "success"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    navigate("/auth", {
-                        state: {
-                            login: true
+        load()
+
+
+        console.log(Swal.isVisible())
+        if (Swal.isVisible()) {
+            setTimeout(() => {
+
+                if (response.status == 200) {
+                    Swal.fire({
+                        title: "Marinero creado correctamente",
+                        confirmButtonText: "Vamos!",
+                        icon: "success"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            navigate("/auth", {
+                                state: {
+                                    login: true
+                                }
+                            })
                         }
                     })
+                } else if (response.status == 400) {
+                    Swal.fire({
+                        title: "Ya existe un marinero con dicho email o nombre",
+                        confirmButtonText: "Está bien",
+                        icon: "error"
+                    })
                 }
-            })
-        } else if (response.status == 400) {
-            Swal.fire({
-                title: "Ya existe un marinero con dicho email o nombre",
-                confirmButtonText: "Está bien",
-                icon: "error"
-            })
+            }, 1000)
         }
+
 
     }
 
@@ -164,7 +174,7 @@ export const Signup = () => {
             }
             <label>Foto de perfil</label>
             <button
-            type="button"
+                type="button"
                 onClick={handleFilePhotoBtn}>
                 Usar foto
             </button>
@@ -201,7 +211,7 @@ export const Signup = () => {
                 onChange={handleChange}
                 name="password"
                 required
-                ></input>
+            ></input>
             <button onClick={() => setSeePassword(prev => !prev)}
                 type="button">
                 Ojo
