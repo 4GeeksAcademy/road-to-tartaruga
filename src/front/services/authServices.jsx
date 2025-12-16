@@ -1,8 +1,8 @@
 import { BACKEND_URL } from "../main"
 
 
-export const fetchLogin = async(form) =>{
-    const response = await fetch(`${BACKEND_URL}api/auth/token`,{
+export const fetchLogin = async (form) => {
+    const response = await fetch(`${BACKEND_URL}api/auth/token`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -15,9 +15,9 @@ export const fetchLogin = async(form) =>{
 }
 
 
-export const fetchSignup = async(form)=>{
+export const fetchSignup = async (form) => {
     const response = await fetch(`${BACKEND_URL}api/sailors`, {
-        method : "POST",
+        method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
@@ -28,13 +28,15 @@ export const fetchSignup = async(form)=>{
 }
 
 
-export const fetchPrivate = async(token) => {
-    const response = await fetch(`${BACKEND_URL}api/auth/private`,{
-        method: "POST",
-        headers: {
-            "Authorization": `Bearer ${token}`
-        }
-    })
+export const fetchPrivate = async (token) => {
+ 
+        const response = await fetch(`${BACKEND_URL}api/auth/private`, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        })
 
-    return response.ok
+       return response.ok
+            
 }

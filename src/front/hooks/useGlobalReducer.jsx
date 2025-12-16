@@ -9,12 +9,17 @@ export function StoreProvider({ children }) {
    
     const [store, dispatch] = useReducer(storeReducer, initialStore())
 
-    return <StoreContext.Provider value={{ store, dispatch }}>
+    const load = () =>{
+        dispatch({type: "loading"})
+    }
+
+
+    return <StoreContext.Provider value={{ store, dispatch, load }}>
         {children}
     </StoreContext.Provider>
 }
 
 export default function useGlobalReducer() {
-    const { dispatch, store } = useContext(StoreContext)
-    return { dispatch, store };
+    const { dispatch, store, load } = useContext(StoreContext)
+    return { dispatch, store, load };
 }

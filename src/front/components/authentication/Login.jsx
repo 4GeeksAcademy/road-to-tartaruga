@@ -6,7 +6,7 @@ import useGlobalReducer from "../../hooks/useGlobalReducer"
 
 export const Login = () => {
     const [seePassword, setSeePassword] = useState(false)
-    const {dispatch} = useGlobalReducer()
+    const {dispatch, load} = useGlobalReducer()
 
     const [formData, setFormData] = useState({ identificator: "", password: "" })
     const [checked, setChecked] = useState(false)
@@ -14,7 +14,9 @@ export const Login = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault()
+        load()
         const fetchResponse = await fetchLogin(formData)
+        await load()
         if (fetchResponse.token) {
 
 

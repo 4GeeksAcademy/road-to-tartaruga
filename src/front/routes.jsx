@@ -23,10 +23,11 @@ import { AuthNeed } from "./pages/public-pages/AuthNeed";
 import { useEffect } from "react";
 import { fetchPrivate } from "./services/authServices";
 import useGlobalReducer from "./hooks/useGlobalReducer";
+import Swal from 'sweetalert2'
 
 export const TartarugaRoutes = () =>{
 
-  const {dispatch} = useGlobalReducer()
+  const {dispatch,store} = useGlobalReducer()
 
   const updateLogin = async() =>{
 		const storage = localStorage.length == 0 ? sessionStorage : localStorage
@@ -40,9 +41,27 @@ export const TartarugaRoutes = () =>{
 		updateLogin()
 	},[])
 
+
+  useEffect(()=>{
+
+    if(store.loading){
+
+      Swal.fire({
+        title: "Cargando...",
+        html : `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>`,
+        timer: 1000,
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false
+      })
+    }
+
+  },[store.loading])
+
 return(
 
   <BrowserRouter>
+  
   <Routes>
 
       <Route  path="/" element={<PublicLayout/>} >

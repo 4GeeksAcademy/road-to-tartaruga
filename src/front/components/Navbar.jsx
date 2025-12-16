@@ -10,11 +10,9 @@ export const Navbar = () => {
 
 	const handleLogOut = () =>{
 		const storage = localStorage.length == 0 ? sessionStorage : localStorage
-		storage.clear()
+		 storage.clear()
 		dispatch({type: "login", payload: false})
 	}
-
-	
 	
 
 	return (
