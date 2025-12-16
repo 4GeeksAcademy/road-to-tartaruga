@@ -20,11 +20,59 @@ import { ClaudeMissions } from "./pages/private-pages/ClaudeMissions";
 import { Authentication } from "./pages/auth-pages/Atuhentication";
 import { NotFound } from "./pages/public-pages/NotFound";
 import { AuthNeed } from "./pages/public-pages/AuthNeed";
+import { useEffect } from "react";
+import { fetchPrivate } from "./services/authServices";
+import useGlobalReducer from "./hooks/useGlobalReducer";
+import Swal from 'sweetalert2'
 
 export const TartarugaRoutes = () =>{
+
+  const {dispatch,store, redirect, redirectOff} = useGlobalReducer()
+
+  const updateLogin = async() =>{
+		const storage = localStorage.length == 0 ? sessionStorage : localStorage
+		const token = storage.token
+		const responseFetchPrivate = await fetchPrivate(token)
+		dispatch({type: "login", payload: responseFetchPrivate})
+	}
+
+
+	useEffect(()=>{
+		updateLogin()
+	},[])
+
+
+
+  const swalRedirect = async(dependence) =>{
+  
+
+    if(dependence){
+       Swal.fire({
+        title: "Redirigiendo...",
+        html : `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>`,
+        timer: 1000,
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false
+      }).then(()=>{
+        redirectOff()
+      })
+
+    }
+    
+
+  }
+
+  useEffect(()=>{
+
+swalRedirect(store.redirecting)
+
+  },[store.redirecting])
+
 return(
 
   <BrowserRouter>
+  
   <Routes>
 
       <Route  path="/" element={<PublicLayout/>} >

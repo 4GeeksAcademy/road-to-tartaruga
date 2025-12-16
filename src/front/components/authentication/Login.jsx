@@ -6,7 +6,7 @@ import useGlobalReducer from "../../hooks/useGlobalReducer"
 
 export const Login = () => {
     const [seePassword, setSeePassword] = useState(false)
-    const {dispatch} = useGlobalReducer()
+    const {dispatch, load} = useGlobalReducer()
 
     const [formData, setFormData] = useState({ identificator: "", password: "" })
     const [checked, setChecked] = useState(false)
@@ -14,7 +14,9 @@ export const Login = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault()
+        load()
         const fetchResponse = await fetchLogin(formData)
+        await load()
         if (fetchResponse.token) {
 
 
@@ -36,14 +38,16 @@ export const Login = () => {
                 sessionStorage.setItem("token", token)
             }
 
+            const isOceanGod = fetchResponse.is_ocean_god
+
             Swal.fire({
                 icon: "success",
-                title: "Bienvenido marinero",
+                title: `Bienvenido ${isOceanGod ? "señor Dios del Oceano!": "querido Marinero!"}`,
                 confirmButtonText: "Vamos!",
 
             }).then((result) => {
                 if (result.isConfirmed) {
-                    dispatch({type:"login"})
+                    dispatch({type:"login", payload: true})
                     
                     navigate("/")
                 }

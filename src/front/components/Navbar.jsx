@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
+import { useEffect } from "react";
+import { fetchPrivate } from "../services/authServices";
 
 export const Navbar = () => {
 
@@ -8,9 +10,10 @@ export const Navbar = () => {
 
 	const handleLogOut = () =>{
 		const storage = localStorage.length == 0 ? sessionStorage : localStorage
-		storage.clear()
-		dispatch({type: "login"})
+		 storage.clear()
+		dispatch({type: "login", payload: false})
 	}
+	
 
 	return (
 		<nav className="navbar navbar-light bg-light">

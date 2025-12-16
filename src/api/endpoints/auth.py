@@ -48,7 +48,7 @@ def create_token():
 
     access_token = create_access_token(identity=sailor.sailor_name, expires_delta=timedelta(minutes=30))
 
-    return jsonify({"token": access_token, "sailor_id": sailor.id, "sailor_name": sailor.sailor_name})
+    return jsonify({"token": access_token, "sailor_id": sailor.id, "sailor_name": sailor.sailor_name, "is_ocean_god": sailor.is_ocean_god})
 
 
 @auth_bp.route("/private", methods=['POST'])
