@@ -27,7 +27,7 @@ import Swal from 'sweetalert2'
 
 export const TartarugaRoutes = () =>{
 
-  const {dispatch,store} = useGlobalReducer()
+  const {dispatch,store, redirect, redirectOff} = useGlobalReducer()
 
   const updateLogin = async() =>{
 		const storage = localStorage.length == 0 ? sessionStorage : localStorage
@@ -42,21 +42,32 @@ export const TartarugaRoutes = () =>{
 	},[])
 
 
-  useEffect(()=>{
 
-    if(store.loading){
+  const swalRedirect = async(dependence) =>{
+  
 
-      Swal.fire({
-        title: "Cargando...",
+    if(dependence){
+       Swal.fire({
+        title: "Redirigiendo...",
         html : `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>`,
         timer: 1000,
         showConfirmButton: false,
         allowOutsideClick: false,
         allowEscapeKey: false
+      }).then(()=>{
+        redirectOff()
       })
-    }
 
-  },[store.loading])
+    }
+    
+
+  }
+
+  useEffect(()=>{
+
+swalRedirect(store.redirecting)
+
+  },[store.redirecting])
 
 return(
 

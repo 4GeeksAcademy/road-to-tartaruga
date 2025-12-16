@@ -1,7 +1,8 @@
 export const initialStore=()=>{
   return{
    login: false,
-   loading:false
+   loading:false,
+   redirecting: false
   }
 }
 
@@ -12,6 +13,12 @@ export default function storeReducer(store, action = {}) {
 
   case 'loading':
     return {...store, loading: !store.loading}
+
+  case 'redirecting':
+    return {...store, redirecting: true}
+    
+  case 'redirecting-off':
+    return {...store, redirecting: false}
 
     default:
       throw Error('Unknown action.');

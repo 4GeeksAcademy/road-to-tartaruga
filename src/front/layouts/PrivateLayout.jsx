@@ -9,28 +9,31 @@ import { fetchPrivate } from "../services/authServices"
 // Base component that maintains the navbar and footer throughout the page and the scroll to top functionality.
 export const PrivateLayout = () => {
 
-    const {dispatch, load, store} = useGlobalReducer()
+    const { dispatch, redirect, store } = useGlobalReducer()
     const navigate = useNavigate()
     const storage = localStorage.length == 0 ? sessionStorage : localStorage
     const token = storage.token
 
-    const privatePage = async(token)=> {
-        load()
+
+    const privatePage = async (token) => {
+        redirect()
         const fetchPrivatePage = await fetchPrivate(token)
-        load()
-        if(!fetchPrivatePage && !store.loading){
-            navigate("/auth-need")
+       
+        if (!fetchPrivatePage && !store.redirecting) {
+            setTimeout(()=>{
+                navigate("/auth-need")
+            }, 1000)
         }
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         privatePage(token)
-    },[])
+    }, [])
 
     return (
         <ScrollToTop>
             <Navbar />
-                <Outlet />
+            <Outlet />
             <Footer />
         </ScrollToTop>
     )

@@ -4,6 +4,7 @@ import { fetchSignup } from "../../services/authServices"
 import { useNavigate } from "react-router-dom"
 import { BACKEND_URL } from "../../main"
 import useGlobalReducer from "../../hooks/useGlobalReducer"
+import { uploadToCloudinary } from "../../services/cloudinaryServices"
 
 
 export const Signup = () => {
@@ -29,22 +30,7 @@ export const Signup = () => {
         }
     )
 
-    const uploadToCloudinary = async (file) => {
-        const cloudinaryForm = new FormData()
-        cloudinaryForm.append("image", file)
-
-
-        const response = await fetch(`${BACKEND_URL}api/upload-image`, {
-            method: "POST",
-            body: cloudinaryForm
-        })
-
-        const data = await response.json()
-
-        return data.secure_url
-
-
-    }
+   
 
     const handleProfilePhoto = async (event) => {
         const selected = event.target.files[0]
