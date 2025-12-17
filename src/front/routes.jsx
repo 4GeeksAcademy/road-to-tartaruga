@@ -20,7 +20,7 @@ import { ClaudeMissions } from "./pages/private-pages/ClaudeMissions";
 import { Authentication } from "./pages/auth-pages/Atuhentication";
 import { NotFound } from "./pages/public-pages/NotFound";
 import { AuthNeed } from "./pages/public-pages/AuthNeed";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { fetchPrivate } from "./services/authServices";
 import useGlobalReducer from "./hooks/useGlobalReducer";
 import Swal from 'sweetalert2'
@@ -60,27 +60,19 @@ export const TartarugaRoutes = () => {
 
   const swalLoading = async (dependence) => {
     
-    const loadingSwal = Swal.mixin({
+    if (dependence) {
+    Swal.fire({
       title: "Cargando...",
+      html: `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>`,
       showConfirmButton: false,
       allowOutsideClick: false,
-      allowEscapeKey: false
+      allowEscapeKey: false,
+      timer: 5000
     })
-    if (dependence) {
-      loadingSwal.fire({
-        html: `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>`,
-      })
-    } else {
-      loadingSwal.close()
-    }
+    } 
   }
+      
 
-
-  useEffect(() => {
-
-    swalRedirect(store.redirecting)
-
-  }, [store.redirecting])
 
   useEffect(() => {
     swalLoading(store.loading)

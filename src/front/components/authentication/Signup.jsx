@@ -68,6 +68,10 @@ export const Signup = () => {
         }
     }
 
+    useEffect(() => {
+
+        console.log("store.redirecting esta cambiando, ahora es -->", store.redirecting)
+    }, [store.redirecting])
 
     const handleSubmit = async (event) => {
         event.preventDefault()
@@ -103,11 +107,8 @@ export const Signup = () => {
         load()
         const response = await fetchSignup(payload)
         load()
-
-
-        console.log(Swal.isVisible())
-        if (Swal.isVisible()) {
-            setTimeout(() => {
+        if(!store.loading){
+            
 
                 if (response.status == 200) {
                     Swal.fire({
@@ -120,20 +121,19 @@ export const Signup = () => {
                                 state: {
                                     login: true
                                 }
-                            })
-                        }
-                    })
-                } else if (response.status == 400) {
-                    Swal.fire({
-                        title: "Ya existe un marinero con dicho email o nombre",
-                        confirmButtonText: "Está bien",
-                        icon: "error"
-                    })
-                }
-            }, 1000)
+                        })
+                    }
+                })
+            } else if (response.status == 400) {
+            Swal.fire({
+                title: "Ya existe un marinero con dicho email o nombre",
+                confirmButtonText: "Está bien",
+                icon: "error"
+            })
         }
 
-
+    }
+        
     }
 
 
