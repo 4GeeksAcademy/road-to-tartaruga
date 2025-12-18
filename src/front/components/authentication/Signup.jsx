@@ -2,10 +2,9 @@ import { useEffect, useState } from "react"
 import Swal from 'sweetalert2'
 import { fetchSignup } from "../../services/authServices"
 import { useNavigate } from "react-router-dom"
-import { BACKEND_URL } from "../../main"
 import useGlobalReducer from "../../hooks/useGlobalReducer"
 import { uploadToCloudinary } from "../../services/cloudinaryServices"
-import storeReducer from "../../store"
+
 
 
 export const Signup = () => {
@@ -40,6 +39,7 @@ export const Signup = () => {
             load()
             const image = await uploadToCloudinary(selected)
             load()
+            Swal.close()
             setFormData({ ...formData, profile_photo: image })
             setProfilePhoto(image)
             setFilePhotoLink(image)
@@ -68,10 +68,6 @@ export const Signup = () => {
         }
     }
 
-    useEffect(() => {
-
-        console.log("store.redirecting esta cambiando, ahora es -->", store.redirecting)
-    }, [store.redirecting])
 
     const handleSubmit = async (event) => {
         event.preventDefault()
@@ -107,6 +103,7 @@ export const Signup = () => {
         load()
         const response = await fetchSignup(payload)
         load()
+        Swal.close()
         if(!store.loading){
             
 
