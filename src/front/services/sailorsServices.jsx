@@ -16,3 +16,8 @@ export const getSailor = async(sailor_id) =>{
 
     return sailorInfo
 }
+
+
+export const editSailor = async(sailor_id) =>{
+    const response = await fetch(`${BACKEND_URL}`)
+}

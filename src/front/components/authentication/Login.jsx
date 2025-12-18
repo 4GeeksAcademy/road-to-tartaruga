@@ -1,12 +1,12 @@
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import Swal from 'sweetalert2'
 import { fetchLogin } from "../../services/authServices"
 import useGlobalReducer from "../../hooks/useGlobalReducer"
 
 export const Login = () => {
     const [seePassword, setSeePassword] = useState(false)
-    const {dispatch, load, loadOff} = useGlobalReducer()
+    const { dispatch, load, loadOff } = useGlobalReducer()
 
     const [formData, setFormData] = useState({ identificator: "", password: "" })
     const [checked, setChecked] = useState(false)
@@ -42,13 +42,13 @@ export const Login = () => {
 
             Swal.fire({
                 icon: "success",
-                title: `Bienvenido ${isOceanGod ? "señor Dios del Oceano!": "querido Marinero!"}`,
+                title: `Bienvenido ${isOceanGod ? "señor Dios del Oceano!" : "querido Marinero!"}`,
                 confirmButtonText: "Vamos!",
 
             }).then((result) => {
                 if (result.isConfirmed) {
-                    dispatch({type:"login", payload: true})
-                    
+                    dispatch({ type: "login", payload: true })
+
                     navigate("/")
                 }
             })
@@ -84,6 +84,8 @@ export const Login = () => {
             <label htmlFor="remember">Remember me</label>
             <input onChange={(e) => setChecked(e.target.checked)} id="remember" type="checkbox"></input>
             <button type="submit">Ingresar</button>
+            <p>No te has registrado, marinero?</p>
+            <Link to="/auth" state={{ login: false }}> Hacerlo</Link>
         </form>
     )
 }

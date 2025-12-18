@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import Swal from 'sweetalert2'
 import { fetchSignup } from "../../services/authServices"
-import { useNavigate } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import useGlobalReducer from "../../hooks/useGlobalReducer"
 import { uploadToCloudinary } from "../../services/cloudinaryServices"
 
@@ -227,6 +227,8 @@ export const Signup = () => {
                 </>
             }
             <button type="submit">Registrarse</button>
+            <p>Ya tienes una cuenta?</p>
+            <Link to="/auth" state={{login:true}}> Ingresa</Link>
         </form>
     )
 }

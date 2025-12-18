@@ -9,7 +9,7 @@ export const fetchLogin = async (form) => {
         },
         body: JSON.stringify(form)
     })
-
+    
     const data = await response.json()
     return data
 }
