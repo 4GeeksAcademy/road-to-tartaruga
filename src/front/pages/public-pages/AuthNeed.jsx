@@ -15,6 +15,7 @@ export const AuthNeed = () => {
         }
 
     },[store.login])
+    
     return (
         <div>
             Hola, soy el componente Auth Need

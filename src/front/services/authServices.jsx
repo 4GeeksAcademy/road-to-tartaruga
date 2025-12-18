@@ -41,6 +41,7 @@ export const fetchPrivate = async (token) => {
             }
         })
 
-       return response.ok
+
+       return response
             
 }

@@ -23,30 +23,36 @@ export const SailorCard = () => {
         setInputFile(true)
         setInputLink(false)
     }
-    
-    
 
+
+    const handleSubmit = (event)=>{
+        event.preventDefault()
+        console.log("Cambios enviados")
+    }
 
     return (
         <div>
-            <div className="bg-dark">
-                <img src={user?.profilePhoto} />
+            <form onSubmit={handleSubmit}>
 
-                <button type="button" disabled={!editProfile} onClick={() => setEditPhoto(prev => !prev)}>Cambiar foto</button>
-                <button type="button">Confirmar cambio</button>
-                <button type="button">Cancelar cambio</button>
-                
-                
-                <button onClick={handleLinkButton} type="button" disabled={!editPhoto || !editPhoto && inputLink}>Enlace</button>
-                <input type="text" placeholder="Ingresa url imagen" disabled={!inputLink}></input>
-                <button onClick={handleFileButton} type="button" disabled={!editPhoto || !editPhoto && inputLink}>Ordenador</button>
-                <input type="file" disabled={!inputFile}/>
-            </div>
-            <input type="text" value={user?.sailorName || ""} disabled={!editProfile}></input>
-            <input type="text" value={user?.email || ""} disabled={!editProfile} ></input>
-            <button onClick={() => setEditProfile(prev => !prev)} type="button">Editar perfil</button>
-            <button onClick={()=> setEditProfile(false)} type="submit" disabled={!editProfile}>Confirmar</button>
-            <button onClick={()=> setEditProfile(false)}type="reset" disabled={!editProfile}>Cancelar</button>
+                <div className="bg-dark">
+                    <img src={user?.profilePhoto} />
+
+                    <button type="button" disabled={!editProfile} onClick={() => setEditPhoto(prev => !prev)}>Cambiar foto</button>
+                    <button type="button">Confirmar cambio</button>
+                    <button type="button">Cancelar cambio</button>
+
+
+                    <button onClick={handleLinkButton} type="button" disabled={!editPhoto || !editPhoto && inputLink}>Enlace</button>
+                    <input type="text" placeholder="Ingresa url imagen" disabled={!inputLink}></input>
+                    <button onClick={handleFileButton} type="button" disabled={!editPhoto || !editPhoto && inputLink}>Ordenador</button>
+                    <input type="file" disabled={!inputFile} />
+                </div>
+                <input type="text" value={user?.sailorName || ""} disabled={!editProfile}></input>
+                <input type="text" value={user?.email || ""} disabled={!editProfile} ></input>
+                <button onClick={() => setEditProfile(prev => !prev)} type="button">Editar perfil</button>
+                <button onClick={() => setEditProfile(false)} type="submit" disabled={!editProfile}>Confirmar</button>
+                <button onClick={() => setEditProfile(false)} type="reset" disabled={!editProfile}>Cancelar</button>
+            </form>
         </div>
     )
 }

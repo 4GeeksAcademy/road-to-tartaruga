@@ -67,6 +67,6 @@ def private_access():
 
 @jwt.expired_token_loader
 def expired_token_callback(jwtheader,jwt_payload):
-    return jsonify({"message": "The toke has expire, log in again"}), 401
+    return jsonify({"message": "The token has expire, log in again"}), 401
 
     
