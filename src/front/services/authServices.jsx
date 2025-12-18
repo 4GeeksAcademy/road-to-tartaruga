@@ -29,7 +29,11 @@ export const fetchSignup = async (form) => {
 
 
 export const fetchPrivate = async (token) => {
- 
+
+        if(!token){
+            console.log("No se ha enviado un token")
+            return false
+        }
         const response = await fetch(`${BACKEND_URL}api/auth/private`, {
             method: "POST",
             headers: {

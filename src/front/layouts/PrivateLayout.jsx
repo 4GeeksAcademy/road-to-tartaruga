@@ -15,20 +15,36 @@ export const PrivateLayout = () => {
     const token = storage.token
 
 
-    const privatePage = async (token) => {
+    const notSigned = () =>{
         redirect()
+        setTimeout(()=>{
+            navigate("/auth-need")
+        }, 1000)
+    }
+
+    const privatePage = async (token) => {
+
+        if(!token && !store.redirecting){
+            notSigned()
+            return
+        }
         const fetchPrivatePage = await fetchPrivate(token)
-       
+        
         if (!fetchPrivatePage && !store.redirecting) {
-            setTimeout(()=>{
-                navigate("/auth-need")
-            }, 1000)
+            notSigned()
         }
     }
 
     useEffect(() => {
         privatePage(token)
     }, [])
+
+    useEffect(()=>{
+        if(!store.login && !token){
+            notSigned()
+        }
+
+    },[store.login])
 
     return (
         <ScrollToTop>

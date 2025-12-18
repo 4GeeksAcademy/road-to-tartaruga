@@ -1,6 +1,6 @@
 import { useContext, useReducer, createContext } from "react";
 import storeReducer, { initialStore } from "../store"  
-
+import Swal from 'sweetalert2'
 
 const StoreContext = createContext()
 
@@ -13,6 +13,11 @@ export function StoreProvider({ children }) {
         dispatch({type: "loading"})
     }
 
+    const loadOff = () =>{
+        dispatch({type: "loadingOff"})
+        Swal.close()
+    }
+
     const redirect = () =>{
         dispatch({type: "redirecting"})
     }
@@ -21,12 +26,12 @@ export function StoreProvider({ children }) {
     }
 
 
-    return <StoreContext.Provider value={{ store, dispatch, load, redirect, redirectOff}}>
+    return <StoreContext.Provider value={{ store, dispatch, load, loadOff, redirect, redirectOff}}>
         {children}
     </StoreContext.Provider>
 }
 
 export default function useGlobalReducer() {
-    const { dispatch, store, load, redirect, redirectOff } = useContext(StoreContext)
-    return { dispatch, store, load, redirect, redirectOff };
+    const { dispatch, store, load, loadOff, redirect, redirectOff } = useContext(StoreContext)
+    return { dispatch, store, load, loadOff, redirect, redirectOff };
 }

@@ -41,14 +41,16 @@ export const TartarugaRoutes = () => {
     updateLogin()
   }, [])
 
-
+  useEffect(()=>{
+    swalRedirect(store.redirecting)
+  },[store.redirecting])
 
   const swalRedirect = async (dependence) => {
     if (dependence) {
       Swal.fire({
         title: "Redirigiendo...",
         html: `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>`,
-        timer: 1000,
+        timer: 500,
         showConfirmButton: false,
         allowOutsideClick: false,
         allowEscapeKey: false
@@ -72,7 +74,6 @@ export const TartarugaRoutes = () => {
     } 
   }
       
-
 
   useEffect(() => {
     swalLoading(store.loading)

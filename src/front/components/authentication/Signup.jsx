@@ -10,7 +10,7 @@ import { uploadToCloudinary } from "../../services/cloudinaryServices"
 export const Signup = () => {
 
 
-    const { load, store } = useGlobalReducer()
+    const { load, loadOff, store } = useGlobalReducer()
     const [seePassword, setSeePassword] = useState(false)
     const navigate = useNavigate()
     const [includeCM, setIncludeCM] = useState(true)
@@ -38,8 +38,7 @@ export const Signup = () => {
         if (selected) {
             load()
             const image = await uploadToCloudinary(selected)
-            load()
-            Swal.close()
+            loadOff()
             setFormData({ ...formData, profile_photo: image })
             setProfilePhoto(image)
             setFilePhotoLink(image)
@@ -102,8 +101,8 @@ export const Signup = () => {
 
         load()
         const response = await fetchSignup(payload)
-        load()
-        Swal.close()
+        loadOff()
+       
         if(!store.loading){
             
 

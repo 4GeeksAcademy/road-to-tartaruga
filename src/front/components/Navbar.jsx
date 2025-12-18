@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 import { useEffect } from "react";
 import { fetchPrivate } from "../services/authServices";
@@ -6,12 +6,14 @@ import { fetchPrivate } from "../services/authServices";
 export const Navbar = () => {
 
 	const { store, dispatch } = useGlobalReducer()
-
+	const {token} = localStorage.length != 0 ? localStorage : sessionStorage
+	const navigate = useNavigate()
 
 	const handleLogOut = () =>{
 		const storage = localStorage.length == 0 ? sessionStorage : localStorage
 		 storage.clear()
 		dispatch({type: "login", payload: false})
+		navigate("/")
 	}
 	
 
@@ -47,7 +49,7 @@ export const Navbar = () => {
 						<button className="btn btn-primary">Claude missions</button>
 					</Link>
 
-					{store.login ?
+					{store.login || token ?
 
 							<button onClick={handleLogOut} className="btn btn-danger">Salir</button>
 						:
