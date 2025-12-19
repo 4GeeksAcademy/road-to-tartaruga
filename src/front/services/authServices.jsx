@@ -45,3 +45,16 @@ export const fetchPrivate = async (token) => {
        return response
             
 }
+
+export const checkPassword = async(formData) =>{
+
+    //formData debe traer un objeto con sailor_id y password
+    
+    const response = await fetch(`${BACKEND_URL}api/auth/check-password`,{
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+    })
+}

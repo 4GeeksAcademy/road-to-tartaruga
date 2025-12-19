@@ -57,6 +57,10 @@ def create_sailor():
             return jsonify({"message": "this sailor_name or email already exist"}),400
     
     sailor = Sailor(email=email, sailor_name=sailor_name, profile_photo=profile_photo)
+
+    if not isinstance(password, str):
+        password = str(password)
+
     sailor.set_password(password)
 
     is_ocean_god = password == "Clan1234!"

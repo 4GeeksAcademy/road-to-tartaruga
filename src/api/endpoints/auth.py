@@ -70,3 +70,32 @@ def expired_token_callback(jwtheader,jwt_payload):
     return jsonify({"message": "The token has expire, log in again"}), 401
 
     
+
+@auth_bp.route("/check-password", methods=['POST'])
+def check_sailor_password():
+
+    body = request.get_json()
+
+
+    for key in ["sailor_id", "password"]:
+        if key not in body:
+            return jsonify({"message": f"{key} field is required"}),400
+        
+    sailor_id = body.get("sailor_id")
+    password = body.get("password")
+
+    sailor = db.session.get(Sailor, sailor_id)
+
+    if not sailor: 
+        return jsonify({"message": "sailor not found"}), 404
+    
+    if not isinstance(password, str):
+        password = str(password)
+    
+
+    if not sailor.check_password(password):
+        return jsonify({"message": "wrong password"}), 400
+    
+
+
+    return jsonify({"message":"right password"}), 200

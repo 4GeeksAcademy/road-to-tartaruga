@@ -61,9 +61,7 @@ export const SailorCard = () => {
                     title: "Marinero no confirmado",
                     text: "Tal parece que no recuerdas tu contraseña",
                     icon: "error",
-                    confirmButtonText: "Intentar otra vez",
-                    showCancelButton: true,
-                    cancelButtonText: "Cancelar"
+                    confirmButtonText: "Intentar otra vez"
                 })
                }
                })
