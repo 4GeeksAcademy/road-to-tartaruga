@@ -130,6 +130,7 @@ def edit_sailor():
     email = body.get("email")
     sailor_name = body.get("sailor_name")
     password = body.get("password")
+    profile_photo = body.get("profile_photo")
 
     if not sailor_id:
         return jsonify({"message": "we need to recieve an sailor_id to edit it"}),400
@@ -139,24 +140,24 @@ def edit_sailor():
     if not sailor: 
         return jsonify({"message": "sailor not found with provided sailor_id"}), 404
 
-    if not email and not sailor_name and not password:
-        return jsonify({"message": "you must send an email, sailorname or password to edit the sailor"}),400
+    if not email and not sailor_name and not password and not profile_photo:
+        return jsonify({"message": "you must send an email, sailorname, password  or profile photo to edit the sailor"}),400
     
 
     exist_sailor_name = db.session.execute(select(Sailor).where(Sailor.sailor_name == sailor_name, Sailor.id != sailor_id)).scalars().first()
     exist_email = db.session.execute(select(Sailor).where(Sailor.email == email, Sailor.id != sailor_id)).scalars().first()
 
     if exist_sailor_name and exist_email:
-        return jsonify({"message": "already exist a sailor with the provided sailor_name and email"}),400
+        return jsonify({"message": "already exist a sailor with the provided sailor_name and email"}), 409
     
     if exist_sailor_name:
         return jsonify({
             "message": "already exist an sailor with the provided sailor_name"
-        }), 400
+        }), 409
     if exist_email:
         return jsonify({
                     "message": "already exist a sailor with the provided email"
-                }), 400
+                }), 409
     
   
     changes= 0
@@ -164,7 +165,7 @@ def edit_sailor():
     for key, value in body.items():
 
         
-        if key in ["email", "sailor_name", "password"]:
+        if key in ["email", "sailor_name", "password", "profile_photo"]:
 
             if key == "password":
                 if not sailor.check_password(value):
@@ -176,14 +177,14 @@ def edit_sailor():
                 changes += 1
 
     if changes == 0:   
-        return jsonify({ "message": "you must send different information to edit the sailor" }), 400
+        return jsonify({ "message": "you must send different information to edit the sailor" }), 409
     
     print(changes)
 
 
     db.session.commit()
 
-    return jsonify(sailor.get_basic_info())
+    return jsonify(sailor.get_basic_info()),200
     
 
 

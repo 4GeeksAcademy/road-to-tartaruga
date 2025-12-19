@@ -35,7 +35,6 @@ export const PrivateLayout = () => {
 
         const data = await fetchPrivatePage.json()
         const expiredToken = data.message == "The token has expire, log in again"
-        console.log(expiredToken)
         if (expiredToken) {
             Swal.fire({
                 title: "Tu sesion ha caducado",
@@ -65,7 +64,6 @@ export const PrivateLayout = () => {
         if (!store.login && !token) {
             notSigned()
         }
-
     }, [store.login])
 
 

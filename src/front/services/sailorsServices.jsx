@@ -18,6 +18,13 @@ export const getSailor = async(sailor_id) =>{
 }
 
 
-export const editSailor = async(sailor_id) =>{
-    const response = await fetch(`${BACKEND_URL}`)
+export const editSailor = async(formData) =>{
+    const response = await fetch(`${BACKEND_URL}api/sailors`, {
+        method : "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+    })
+    return response
 }

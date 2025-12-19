@@ -77,14 +77,14 @@ def check_sailor_password():
     body = request.get_json()
 
 
-    for key in ["sailor_id", "password"]:
+    for key in ["email", "password"]:
         if key not in body:
             return jsonify({"message": f"{key} field is required"}),400
         
-    sailor_id = body.get("sailor_id")
+    email= body.get("email")
     password = body.get("password")
 
-    sailor = db.session.get(Sailor, sailor_id)
+    sailor = db.session.execute(select(Sailor).where(Sailor.email == email)).scalars().first()
 
     if not sailor: 
         return jsonify({"message": "sailor not found"}), 404

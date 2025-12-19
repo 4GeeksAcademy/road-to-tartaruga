@@ -57,4 +57,6 @@ export const checkPassword = async(formData) =>{
         },
         body: JSON.stringify(formData)
     })
+
+    return response
 }
