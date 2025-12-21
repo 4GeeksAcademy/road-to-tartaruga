@@ -3,7 +3,7 @@ import Swal from 'sweetalert2'
 import { fetchSignup } from "../../services/authServices"
 import { Link, useNavigate } from "react-router-dom"
 import useGlobalReducer from "../../hooks/useGlobalReducer"
-import { uploadToCloudinary } from "../../services/cloudinaryServices"
+import { uploadToCloudinary } from "../../services/imagesServices"
 
 
 

@@ -3,16 +3,22 @@ import useGlobalReducer from "../../hooks/useGlobalReducer"
 import Swal from "sweetalert2"
 import { checkPassword, fetchLogin } from "../../services/authServices"
 import { editSailor } from "../../services/sailorsServices"
+import { checkImageLink, uploadToCloudinary } from "../../services/imagesServices"
 
 export const SailorCard = () => {
 
-    const { store } = useGlobalReducer()
+    const { store, load, loadOff } = useGlobalReducer()
     const { user } = store
     const { sailorId: sailor_id } = localStorage.length != 0 ? localStorage : sessionStorage
     const [editProfile, setEditProfile] = useState(false)
     const [editPhoto, setEditPhoto] = useState(false)
     const [inputLink, setInputLink] = useState(false)
     const [inputFile, setInputFile] = useState(false)
+    const [inputLinkUrl, setInputLinkUrl] = useState("")
+    const [inputFileUrl, setInputFileUrl] = useState("")
+
+    const [imageUrl, setImageUrl] = useState("")
+
     const [formData, setFormData] = useState({
         sailor_id,
         sailor_name: "",
@@ -133,13 +139,6 @@ export const SailorCard = () => {
         resetFormData()
     }, [user])
 
-    useEffect(()=>{
-
-console.log(formData)
-
-    },[formData])
-
-
 
     const handleChange = (event) => {
         const name = event.target.name
@@ -147,42 +146,70 @@ console.log(formData)
         setFormData({ ...formData, [name]: value })
     }
 
+    const handleChangeImg = async(type, event) =>{
+        if(type === "file"){
+            const selected = event.target.files[0]
+
+            if(selected){
+                load()
+                const image = await uploadToCloudinary(selected)
+                loadOff()
+                setInputFileUrl(image)
+            }
+           
+        }else if(type === "link"){
+            const url = event.target.value
+            setInputLinkUrl(url)
+        }
+    }
+
+    const handleCancelImg = ()=>{
+        resetFormData()
+        setEditPhoto(false)
+        setInputFileUrl("")
+        setInputLinkUrl("")
+    }
+
+    useEffect(()=>{
+
+        console.log(inputFileUrl)
+
+    },[inputFileUrl])
+
+    const handleConfirmImg = () =>{
+        setEditPhoto(false)
+    }
 
     const handleReset = () => {
         setEditProfile(false)
-        setFormData({
-            sailor_id: sailor_id,
-            sailor_name: user.sailorName,
-            email: user.email,
-            profile_photo: user.profilePhoto
-        })
+        resetFormData()
     }
 
     return (
         <div>
-
             <form onSubmit={handleSubmit}>
-
                 <div className="bg-dark">
                     <img src={formData.profile_photo} />
-
-                    <button type="button" disabled={!editProfile} onClick={() => {
+                    <button type="button" disabled={!editProfile || editPhoto} onClick={() => {
                         setEditPhoto(prev => !prev)
                         setInputFile(false)
                         setInputLink(false)
                     }}>Cambiar foto</button>
 
+                    <button onClick={handleConfirmImg} type="button" disabled={!editPhoto}>Confirmar imagen</button>
+
+                    <button onClick={handleCancelImg} type="button" disabled={!editPhoto}>Cancelar imagen</button>
 
                     <button onClick={handleLinkButton} type="button" disabled={!editPhoto || !editPhoto && inputLink}>Enlace</button>
-                    <input onChange={handleChange} name="profile_photo" type="text" placeholder="Ingresa url imagen" disabled={inputLink && editPhoto ? false : true}></input>
+                    <input onChange={(event)=>handleChangeImg("link", event)}  value={inputLinkUrl} type="text" placeholder="Ingresa url imagen" disabled={inputLink && editPhoto ? false : true}></input>
                     <button onClick={handleFileButton} type="button" disabled={!editPhoto || !editPhoto && inputLink}>Ordenador</button>
-                    <input type="file" disabled={inputFile && editPhoto ? false : true} />
+                    <input onChange={(event)=> handleChangeImg("file", event)} type="file" disabled={inputFile && editPhoto ? false : true} />
                 </div>
                 <input type="text" onChange={handleChange} name="sailor_name" value={formData.sailor_name || ""} disabled={!editProfile}></input>
                 <input type="text" onChange={handleChange} name="email" value={formData.email || ""} disabled={!editProfile} ></input>
                 <button onClick={handleEditInfoBtn} type="button" disabled={editProfile} >Editar perfil</button>
-                <button type="submit" disabled={!editProfile}>Confirmar</button>
-                <button onClick={handleReset} type="reset" disabled={!editProfile}>Cancelar</button>
+                <button type="submit" disabled={!editProfile || editPhoto} >Confirmar</button>
+                <button onClick={handleReset} type="reset" disabled={!editProfile || editPhoto}>Cancelar</button>
             </form>
         </div>
     )
