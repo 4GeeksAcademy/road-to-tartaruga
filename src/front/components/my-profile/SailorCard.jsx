@@ -3,11 +3,14 @@ import useGlobalReducer from "../../hooks/useGlobalReducer"
 import Swal from "sweetalert2"
 import { checkPassword, fetchLogin } from "../../services/authServices"
 import { editSailor } from "../../services/sailorsServices"
-import { checkImageLink, uploadToCloudinary } from "../../services/imagesServices"
+import { uploadToCloudinary } from "../../services/imagesServices"
+import { handleLogOut } from "../Navbar"
+import { useNavigate } from "react-router-dom"
 
 export const SailorCard = () => {
 
-    const { store, load, loadOff } = useGlobalReducer()
+    const { store, load, loadOff, dispatch } = useGlobalReducer()
+    const navigate = useNavigate()
     const { user } = store
     const { sailorId: sailor_id } = localStorage.length != 0 ? localStorage : sessionStorage
     const [editProfile, setEditProfile] = useState(false)
@@ -92,6 +95,22 @@ export const SailorCard = () => {
                     confirmButtonText: "Entendido"
                 })
             }
+        } else if(status === 200){
+            Swal.fire({
+                title: "Perfil actualizado",
+                text: "Ya que has actualizado tu perfil, debes volver a iniciar sesion",
+                icon: "success",
+                confirmButtonText: "Vamos!"
+            }).then(resp =>{
+                if(resp.isConfirmed){
+                    handleLogOut(dispatch)
+                    navigate("/auth",{
+                        state:{
+                            login: true
+                        }
+                    } )
+                }
+            })
         }
 
 
