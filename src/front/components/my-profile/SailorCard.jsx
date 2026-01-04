@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import useGlobalReducer from "../../hooks/useGlobalReducer"
 import Swal from "sweetalert2"
 import { checkPassword, fetchLogin } from "../../services/authServices"
@@ -16,6 +16,9 @@ export const SailorCard = () => {
     const [inputFile, setInputFile] = useState(false)
     const [inputLinkUrl, setInputLinkUrl] = useState("")
     const [inputFileUrl, setInputFileUrl] = useState("")
+    const [imgError, setImgError] = useState(false)
+    const fileInputRef = useRef(null)
+
 
     const [imageUrl, setImageUrl] = useState("")
 
@@ -26,13 +29,13 @@ export const SailorCard = () => {
         profile_photo: ""
     })
 
-    const resetFormData = ()=>{
-         setFormData({
-               sailor_id: sailor_id,
-                sailor_name: user?.sailorName,
-                email: user?.email,
-                profile_photo: user?.profilePhoto
-            })
+    const resetFormData = () => {
+        setFormData({
+            sailor_id: sailor_id,
+            sailor_name: user?.sailorName,
+            email: user?.email,
+            profile_photo: user?.profilePhoto
+        })
     }
 
     const handleLinkButton = () => {
@@ -47,7 +50,7 @@ export const SailorCard = () => {
 
     const handleSubmit = async (event) => {
         event.preventDefault()
-      
+
         const fetchEdit = await editSailor(formData)
         const data = await fetchEdit.json()
         const status = fetchEdit.status
@@ -80,19 +83,19 @@ export const SailorCard = () => {
                     icon: "error",
                     confirmButtonText: "Intentar otra vez"
                 })
-            
-            }else if(sameInfo){
+
+            } else if (sameInfo) {
                 Swal.fire({
                     title: "Sin cambios para guardar",
-                    text : "No hay cambios en tu perfil, realiza alguno para actualizar tu informacion",
+                    text: "No hay cambios en tu perfil, realiza alguno para actualizar tu informacion",
                     icon: "info",
                     confirmButtonText: "Entendido"
                 })
             }
-        } 
+        }
 
-   
-        
+
+
 
     }
 
@@ -146,64 +149,136 @@ export const SailorCard = () => {
         setFormData({ ...formData, [name]: value })
     }
 
-    const handleChangeImg = async(type, event) =>{
-        if(type === "file"){
+    const handleChangeImg = async (type, event) => {
+        if (type === "file") {
             const selected = event.target.files[0]
 
-            if(selected){
+            if (selected) {
                 load()
                 const image = await uploadToCloudinary(selected)
                 loadOff()
                 setInputFileUrl(image)
+                setImageUrl(image)
             }
-           
-        }else if(type === "link"){
+
+        } else if (type === "link") {
             const url = event.target.value
             setInputLinkUrl(url)
+            setImageUrl(url)
         }
     }
 
-    const handleCancelImg = ()=>{
-        resetFormData()
+    const handleCloseModal = () =>{
         setEditPhoto(false)
         setInputFileUrl("")
         setInputLinkUrl("")
+        setImageUrl("")
+        fileInputRef.current.value = ""
     }
 
-    useEffect(()=>{
+    
 
-        console.log(inputFileUrl)
-
-    },[inputFileUrl])
-
-    const handleConfirmImg = () =>{
-        setEditPhoto(false)
+    const handleConfirmImg = () => {
+        setFormData(prev => {
+            return {...prev, profile_photo : imageUrl}
+        })
+        handleCloseModal()
     }
+
+    useEffect(() => {
+
+        if (inputLink) {
+            setImageUrl(inputLinkUrl)
+        } else if (inputFile) {
+            setImageUrl(inputFileUrl)
+        }
+
+    }, [inputLink, inputFile])
+
 
     const handleReset = () => {
         setEditProfile(false)
         resetFormData()
     }
 
+ 
+
+    useEffect(() => {
+        setImgError(false)
+    }, [imageUrl])
+
+
+
+
+
     return (
         <div>
             <form onSubmit={handleSubmit}>
                 <div className="bg-dark">
                     <img src={formData.profile_photo} />
-                    <button type="button" disabled={!editProfile || editPhoto} onClick={() => {
-                        setEditPhoto(prev => !prev)
+
+                    <button type="button" disabled={!editProfile} onClick={() => {
+                        setEditPhoto(true)
                         setInputFile(false)
                         setInputLink(false)
-                    }}>Cambiar foto</button>
 
-                    <button onClick={handleConfirmImg} type="button" disabled={!editPhoto}>Confirmar imagen</button>
+                    }}
+                        data-bs-toggle="modal"
+                        data-bs-target="#changePhotoModal"
+                    >Cambiar foto</button>
 
-                    <button onClick={handleCancelImg} type="button" disabled={!editPhoto}>Cancelar imagen</button>
 
-                    <button onClick={handleLinkButton} type="button" disabled={!editPhoto || !editPhoto && inputLink}>Enlace</button>
-                    <input onChange={(event)=>handleChangeImg("link", event)}  value={inputLinkUrl} type="text" placeholder="Ingresa url imagen" disabled={inputLink && editPhoto ? false : true}></input>
-                    <button onClick={handleFileButton} type="button" disabled={!editPhoto || !editPhoto && inputLink}>Ordenador</button>
-                    <input onChange={(event)=> handleChangeImg("file", event)} type="file" disabled={inputFile && editPhoto ? false : true} />
+                    <div className="modal fade"
+                        id="changePhotoModal"
+                        tabIndex="-1"
+                        aria-hidden="true"
+                        data-bs-backdrop="static"
+                        data-bs-keyboard="false"
+                    >
+                        <div className="modal-dialog">
+                            <div className="modal-content">
+
+                                <div className="modal-header">
+
+                                    <p>Vista previa</p>
+
+                                    <button
+                                        onClick={handleCloseModal}
+                                        type="button"
+                                        className="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+
+                                    ></button>
+
+                                </div>
+
+                                {imageUrl && !imgError ?
+                                    <img onError={() => setImgError(true)} onLoad={() => setImgError(false)} src={imageUrl} />
+                                    :
+                                    imgError ?
+                                        <span className="display-5">
+                                            <p>Error al cargar la imagen, trata con otra</p>
+                                        </span> :
+                                        <span className="display-5">
+                                            <p>Selecciona una imagen para ver su vista previa</p>
+                                        </span>}
+                                <button onClick={handleConfirmImg} data-bs-dismiss="modal" type="button" disabled={!editPhoto && imgError || imgError && imageUrl || !imageUrl}>Confirmar </button>
+
+                                <button onClick={handleCloseModal} type="button" disabled={!editPhoto} data-bs-dismiss="modal" >Cancelar</button>
+
+                                <button onClick={handleLinkButton} type="button" disabled={!editPhoto || !editPhoto && inputLink}>Enlace</button>
+
+                                <input onChange={(event) => handleChangeImg("link", event)} value={inputLinkUrl} type="text"
+                                    placeholder="Ingresa url imagen" disabled={inputLink && editPhoto ? false : true}></input>
+
+                                <button onClick={handleFileButton} type="button" disabled={!editPhoto || !editPhoto && inputLink}>Ordenador</button>
+                                <input ref={fileInputRef} onChange={(event) => handleChangeImg("file", event)} type="file" disabled={inputFile && editPhoto ? false : true} />
+
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
                 <input type="text" onChange={handleChange} name="sailor_name" value={formData.sailor_name || ""} disabled={!editProfile}></input>
                 <input type="text" onChange={handleChange} name="email" value={formData.email || ""} disabled={!editProfile} ></input>
