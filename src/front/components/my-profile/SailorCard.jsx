@@ -228,8 +228,6 @@ export const SailorCard = () => {
 
 
 
-
-
     return (
         <div>
             <form onSubmit={handleSubmit}>
