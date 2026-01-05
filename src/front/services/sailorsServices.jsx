@@ -1,10 +1,10 @@
 import { BACKEND_URL } from "../main"
 
-export const getSailor = async(sailor_id) =>{
+export const getSailor = async (sailor_id) => {
     const response = await fetch(`${BACKEND_URL}api/sailors?sailor_id=${sailor_id}`)
-    
-    if(!response.ok){
-        console.log({"error": `Error ${response.status}, ${response.statusText}`})
+
+    if (!response.ok) {
+        console.log({ "error": `Error ${response.status}, ${response.statusText}` })
     }
     const data = await response.json()
 
@@ -18,13 +18,22 @@ export const getSailor = async(sailor_id) =>{
 }
 
 
-export const editSailor = async(formData) =>{
+export const editSailor = async (formData) => {
     const response = await fetch(`${BACKEND_URL}api/sailors`, {
-        method : "PATCH",
+        method: "PATCH",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify(formData)
     })
     return response
+}
+
+
+export const deleteSailor = async (sailorId) => {
+    const response = await fetch(`${BACKEND_URL}api/sailors?sailor_id=${sailorId}`, {
+        method: "DELETE"
+    })
+    const data = await response.json()
+    return data
 }

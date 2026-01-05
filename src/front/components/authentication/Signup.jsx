@@ -9,7 +9,7 @@ import { uploadToCloudinary } from "../../services/imagesServices"
 
 export const Signup = () => {
 
-
+    const [imgError, setImgError] = useState(false)
     const { load, loadOff, store } = useGlobalReducer()
     const [seePassword, setSeePassword] = useState(false)
     const navigate = useNavigate()
@@ -94,6 +94,15 @@ export const Signup = () => {
             return
         }
 
+        if (imgError) {
+            Swal.fire({
+                title: "Error al cargar la imagen",
+                text: "Prueba otra vez, y asegurate de escribir bien la dirección",
+                icon: "warning"
+            })
+            return
+        }
+
         const { claude_mission_id, ...resto } = formData
 
         const payload = includeCM ? formData : resto
@@ -102,34 +111,36 @@ export const Signup = () => {
         load()
         const response = await fetchSignup(payload)
         loadOff()
-       
-        if(!store.loading){
-            
 
-                if (response.status == 200) {
-                    Swal.fire({
-                        title: "Marinero creado correctamente",
-                        confirmButtonText: "Vamos!",
-                        icon: "success"
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            navigate("/auth", {
-                                state: {
-                                    login: true
-                                }
+        if (!store.loading) {
+
+
+            if (response.status == 200) {
+                Swal.fire({
+                    title: "Marinero creado correctamente",
+                    confirmButtonText: "Vamos!",
+                    icon: "success"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        navigate("/auth", {
+                            state: {
+                                login: true
+                            }
                         })
                     }
                 })
             } else if (response.status == 400) {
-            Swal.fire({
-                title: "Ya existe un marinero con dicho email o nombre",
-                confirmButtonText: "Está bien",
-                icon: "error"
-            })
+                Swal.fire({
+                    title: "Ya existe un marinero con dicho email o nombre",
+                    confirmButtonText: "Está bien",
+                    icon: "error"
+                })
+            }
+
         }
 
-    }
-        
+
+
     }
 
 
@@ -155,6 +166,27 @@ export const Signup = () => {
         })
     }
 
+    const validImage = (url) => {
+        return new Promise(resolve => {
+            const img = new Image();
+            img.onload = () => resolve(true)
+            img.onerror = () => resolve(false)
+            img.src = url
+        })
+    }
+
+    const handleImgError = async() =>{
+      const imgValid = await validImage(profilePhoto)
+    
+      setImgError(!imgValid)
+
+    }
+
+    useEffect(() => {
+        handleImgError()
+    }, [profilePhoto])
+
+
 
     return (
 
@@ -162,9 +194,13 @@ export const Signup = () => {
             {profilePhoto &&
                 <div style={{ width: "20rem" }}>
                     <div className="ratio ratio-1x1">
-                        <img className="object-fit-cover"
-                            src={profilePhoto}
-                            alt="profilePhoto" />
+                        {imgError ?
+                            <p>Error cargando la imagen</p>
+                            :
+                            <img className="object-fit-cover"
+                                src={profilePhoto}
+                                alt="profilePhoto" />
+                        }
                     </div>
                 </div>
             }
@@ -228,7 +264,7 @@ export const Signup = () => {
             }
             <button type="submit">Registrarse</button>
             <p>Ya tienes una cuenta?</p>
-            <Link to="/auth" state={{login:true}}> Ingresa</Link>
+            <Link to="/auth" state={{ login: true }}> Ingresa</Link>
         </form>
     )
 }

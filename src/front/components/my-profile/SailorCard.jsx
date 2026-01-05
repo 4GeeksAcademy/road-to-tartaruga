@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react"
 import useGlobalReducer from "../../hooks/useGlobalReducer"
 import Swal from "sweetalert2"
 import { checkPassword, fetchLogin } from "../../services/authServices"
-import { editSailor } from "../../services/sailorsServices"
+import { deleteSailor, editSailor } from "../../services/sailorsServices"
 import { uploadToCloudinary } from "../../services/imagesServices"
 import { handleLogOut } from "../Navbar"
 import { useNavigate } from "react-router-dom"
@@ -95,20 +95,20 @@ export const SailorCard = () => {
                     confirmButtonText: "Entendido"
                 })
             }
-        } else if(status === 200){
+        } else if (status === 200) {
             Swal.fire({
                 title: "Perfil actualizado",
                 text: "Ya que has actualizado tu perfil, debes volver a iniciar sesion",
                 icon: "success",
                 confirmButtonText: "Vamos!"
-            }).then(resp =>{
-                if(resp.isConfirmed){
+            }).then(resp => {
+                if (resp.isConfirmed) {
                     handleLogOut(dispatch)
-                    navigate("/auth",{
-                        state:{
+                    navigate("/auth", {
+                        state: {
                             login: true
                         }
-                    } )
+                    })
                 }
             })
         }
@@ -187,7 +187,7 @@ export const SailorCard = () => {
         }
     }
 
-    const handleCloseModal = () =>{
+    const handleCloseModal = () => {
         setEditPhoto(false)
         setInputFileUrl("")
         setInputLinkUrl("")
@@ -195,11 +195,11 @@ export const SailorCard = () => {
         fileInputRef.current.value = ""
     }
 
-    
+
 
     const handleConfirmImg = () => {
         setFormData(prev => {
-            return {...prev, profile_photo : imageUrl}
+            return { ...prev, profile_photo: imageUrl }
         })
         handleCloseModal()
     }
@@ -220,31 +220,60 @@ export const SailorCard = () => {
         resetFormData()
     }
 
- 
+    const handleChangePhotoBtn = () => {
+        setEditPhoto(true)
+        setInputFile(false)
+        setInputLink(false)
+    }
 
     useEffect(() => {
         setImgError(false)
     }, [imageUrl])
 
+    const handleDesactivateAccount = () => {
+        Swal.fire({
+            title: "Estas seguro/a de esta acción?",
+            text: "Si lo haces, todo progreso con tu cuenta sera borrado",
+            icon: "warning",
+            confirmButtonText: "Si",
+            showCancelButton: true,
+            cancelButtonText: "No, no lo quiero  hacer",
+            confirmButtonColor: "red"
+        }).then((resp) => {
+            if (resp.isConfirmed) {
+            deleteSailor(sailor_id).then((deleteResponse)=>{
+                if(deleteResponse.done){
+                    Swal.fire({
+                        title: "Cuenta desactivada con éxito",
+                        text: "Aqui estaremos en tu regreso, hasta luego marinero.😭",
+                        icon: "info",
+                        confirmButtonText: "De acuerdo"
+                    }).then(() => {
+                        handleLogOut(dispatch)
+                        navigate("/auth", {
+                            state: {
+                                login: true
+                            }
+                        })
+                    })
 
+                }
+            })
+            }
+        })
+    }
+
+ 
 
     return (
         <div>
             <form onSubmit={handleSubmit}>
                 <div className="bg-dark">
                     <img src={formData.profile_photo} />
-
-                    <button type="button" disabled={!editProfile} onClick={() => {
-                        setEditPhoto(true)
-                        setInputFile(false)
-                        setInputLink(false)
-
-                    }}
+                    <button type="button" disabled={!editProfile} onClick={handleChangePhotoBtn}
                         data-bs-toggle="modal"
                         data-bs-target="#changePhotoModal"
                     >Cambiar foto</button>
-
-
                     <div className="modal fade"
                         id="changePhotoModal"
                         tabIndex="-1"
@@ -269,7 +298,6 @@ export const SailorCard = () => {
                                     ></button>
 
                                 </div>
-
                                 {imageUrl && !imgError ?
                                     <img onError={() => setImgError(true)} onLoad={() => setImgError(false)} src={imageUrl} />
                                     :
@@ -302,6 +330,7 @@ export const SailorCard = () => {
                 <button onClick={handleEditInfoBtn} type="button" disabled={editProfile} >Editar perfil</button>
                 <button type="submit" disabled={!editProfile || editPhoto} >Confirmar</button>
                 <button onClick={handleReset} type="reset" disabled={!editProfile || editPhoto}>Cancelar</button>
+                <button onClick={handleDesactivateAccount} className="btn btn-danger" type="button" disabled={!editProfile || editPhoto} >Eliminar marinero</button>
             </form>
         </div>
     )
