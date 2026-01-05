@@ -2,19 +2,19 @@ import { Link, useNavigate } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
 
 
-export const handleLogOut = (dispatchVariable) =>{
+export const handleLogOut = (dispatchVariable) => {
 	const storage = localStorage.length == 0 ? sessionStorage : localStorage
 	storage.clear()
-	dispatchVariable({type: "login", payload: false})
+	dispatchVariable({ type: "LOGIN", payload: false })
 }
 
 export const Navbar = () => {
-	
+
 	const { store, dispatch } = useGlobalReducer()
-	const {token} = localStorage.length != 0 ? localStorage : sessionStorage
+	const { token } = localStorage.length != 0 ? localStorage : sessionStorage
 	const navigate = useNavigate()
-	
-	const logoutNavbar = () =>{
+
+	const logoutNavbar = () => {
 		handleLogOut(dispatch)
 		navigate("/")
 	}
@@ -53,7 +53,7 @@ export const Navbar = () => {
 
 					{store.login || token ?
 
-							<button onClick={logoutNavbar} className="btn btn-danger">Salir</button>
+						<button onClick={logoutNavbar} className="btn btn-danger">Salir</button>
 						:
 						<>
 							<Link to="/auth" state={{ login: true }}>

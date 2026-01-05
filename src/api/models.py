@@ -286,13 +286,13 @@ class Mission(db.Model):
             "id": self.id,
             "title": self.title,
             "description": self.description,
-            "completed_at": self.completed_at.isoformat() if self.completed_at else None
+            "completed_at": self.completed_at.isoformat() if self.completed_at else None,
+            "objectives": self.get_objectives()
         }
     
     def get_objectives(self):
-        return{
-            "objectives": [objective.get_info_for_mission() for objective in self.objectives]
-        }
+        return [objective.get_info_for_mission() for objective in self.objectives]
+
 
 
 

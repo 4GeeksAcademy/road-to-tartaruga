@@ -47,7 +47,7 @@ export const Login = () => {
 
             }).then((result) => {
                 if (result.isConfirmed) {
-                    dispatch({ type: "login", payload: true })
+                    dispatch({ type: "LOGIN", payload: true })
 
                     navigate("/")
                 }

@@ -112,7 +112,7 @@ export const Signup = () => {
         const response = await fetchSignup(payload)
         loadOff()
 
-        if (!store.loading) {
+        if (!store.LOADING) {
 
 
             if (response.status == 200) {
@@ -175,10 +175,10 @@ export const Signup = () => {
         })
     }
 
-    const handleImgError = async() =>{
-      const imgValid = await validImage(profilePhoto)
-    
-      setImgError(!imgValid)
+    const handleImgError = async () => {
+        const imgValid = await validImage(profilePhoto)
+
+        setImgError(!imgValid)
 
     }
 

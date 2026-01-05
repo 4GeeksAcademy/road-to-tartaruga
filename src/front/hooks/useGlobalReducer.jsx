@@ -1,32 +1,32 @@
 import { useContext, useReducer, createContext } from "react";
-import storeReducer, { initialStore } from "../store"  
+import storeReducer, { initialStore } from "../store"
 import Swal from 'sweetalert2'
 
 const StoreContext = createContext()
 
 
 export function StoreProvider({ children }) {
-   
+
     const [store, dispatch] = useReducer(storeReducer, initialStore())
 
-    const load = () =>{
-        dispatch({type: "loading"})
+    const load = () => {
+        dispatch({ type: "LOADING" })
     }
 
-    const loadOff = () =>{
-        dispatch({type: "loadingOff"})
+    const loadOff = () => {
+        dispatch({ type: "LOADING_OFF" })
         Swal.close()
     }
 
-    const redirect = () =>{
-        dispatch({type: "redirecting"})
+    const redirect = () => {
+        dispatch({ type: "REDIRECTING" })
     }
-    const redirectOff = () =>{
-        dispatch({type: "redirecting-off"})
+    const redirectOff = () => {
+        dispatch({ type: "REDIRECTING_OFF" })
     }
 
 
-    return <StoreContext.Provider value={{ store, dispatch, load, loadOff, redirect, redirectOff}}>
+    return <StoreContext.Provider value={{ store, dispatch, load, loadOff, redirect, redirectOff }}>
         {children}
     </StoreContext.Provider>
 }

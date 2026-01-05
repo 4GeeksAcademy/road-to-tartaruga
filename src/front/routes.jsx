@@ -33,7 +33,7 @@ export const TartarugaRoutes = () => {
     const storage = localStorage.length == 0 ? sessionStorage : localStorage
     const token = storage.token
     const responseFetchPrivate = await fetchPrivate(token)
-    dispatch({ type: "login", payload: responseFetchPrivate })
+    dispatch({ type: "LOGIN", payload: responseFetchPrivate })
   }
 
 
@@ -41,9 +41,9 @@ export const TartarugaRoutes = () => {
     updateLogin()
   }, [])
 
-  useEffect(()=>{
-    swalRedirect(store.redirecting)
-  },[store.redirecting])
+  useEffect(() => {
+    swalRedirect(store.REDIRECTING)
+  }, [store.REDIRECTING])
 
   const swalRedirect = async (dependence) => {
     if (dependence) {
@@ -61,19 +61,19 @@ export const TartarugaRoutes = () => {
   }
 
   const swalLoading = async (dependence) => {
-    
+
     if (dependence) {
-    Swal.fire({
-      title: "Cargando...",
-      html: `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>`,
-      showConfirmButton: false,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      timer: 5000
-    })
-    } 
+      Swal.fire({
+        title: "Cargando...",
+        html: `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>`,
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        timer: 5000
+      })
+    }
   }
-      
+
 
   useEffect(() => {
     swalLoading(store.loading)

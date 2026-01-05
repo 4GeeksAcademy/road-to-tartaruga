@@ -42,7 +42,7 @@ def create_sailor_missions(sailor_id):
     body = request.get_json()
 
     title = body.get("title")
-    description = body.get("title")
+    description = body.get("description")
     objectives = body.get("objectives")
 
     for key in ["title", "description", "objectives"]:
@@ -367,7 +367,7 @@ def complete_sailor_mission(sailor_id, mission_id, cm_id):
 
     
     completed_today = db.session.execute(
-        select(Mission).where(Mission.sailor_owner_id == sailor,
+        select(Mission).where(Mission.sailor_owner_id == sailor_id,
                               Mission.id == mission_id,
                               Mission.completed_at >= utc_day_start,
                               Mission.completed_at <= utc_day_end
