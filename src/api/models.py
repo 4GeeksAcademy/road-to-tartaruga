@@ -347,6 +347,7 @@ class Objective(db.Model):
 
     def get_info_for_mission(self):
         return{
+            "id": self.id,
             "title": self.title,
             "assigned_to": self.assigned_to_id,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None

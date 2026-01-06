@@ -6,6 +6,18 @@ from zoneinfo import ZoneInfo
 
 missions_bp = Blueprint("missions", __name__, url_prefix="/missions")
 
+
+@missions_bp.route("/<int:mission_id>")
+def get_mission(mission_id):
+
+    mission = db.session.get(Mission, mission_id)
+
+    if not mission:
+        return jsonify({"message": "mission not found"}),404
+
+    return jsonify(mission.get_basic_info()),200
+
+
 @missions_bp.route("/sailor/<int:sailor_id>", methods=['GET'])
 def get_sailor_missions(sailor_id):
 
@@ -15,7 +27,6 @@ def get_sailor_missions(sailor_id):
         return jsonify({"message": "sailor not found"}), 404
     
     return jsonify(sailor.get_missions_by_state()),200
-
 
 
 
@@ -353,6 +364,14 @@ def complete_sailor_mission(sailor_id, mission_id, cm_id):
 
     if not mission:
         return jsonify({"message": "mission not found"})
+    
+    objectives = db.session.execute(select(Objective).where(Objective.mission_id == mission_id)).scalars().all()
+    completed_objectives = db.session.execute(select(Objective).where(Objective.mission_id == mission_id, Objective.completed_at != None)).scalars().all()
+    
+    
+    if len(objectives) != len(completed_objectives):
+        return jsonify({"message": "you need to complete all the objectives"}), 400
+
     
     es = ZoneInfo("Europe/Madrid")
 

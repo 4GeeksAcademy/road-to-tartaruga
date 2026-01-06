@@ -28,3 +28,8 @@ export const addSailorMission = async(formData, sailorId)=>{
         return data
     
 }
+
+
+export const completeMission = async(sailorId, missionId, claudeMissionId)=>{
+   const response = await fetch(`${BACKEND_URL}api/missions/sailor/${sailorId}/mission/${missionId}/complete/claude-mission/${claudeMissionId}`) 
+}
