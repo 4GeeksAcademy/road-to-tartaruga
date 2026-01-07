@@ -40,14 +40,24 @@ export default function storeReducer(store, action = {}) {
     case "ADD_MISSION":
       return {...store, missions: [...store.missions, action.payload]}
 
-    case "COMPLETE_OBJECTIVE":
+    case "UPDATE_OBJECTIVE":
 
-      return {...store, missions: store.missions.map((mission)=>{
-        if(mission.id == action.payload){
-          return
+      const newIncompleted = store.missions.incompleted.map((mission)=>{
+        if(mission.id === action.payload.missionId){
+          const newObjectives = mission.objectives.map((objective)=>{
+            if(objective.id === action.payload.objectiveId){
+              return {...objective, completed_at: action.payload.completedAt}
+            }
+            return objective
+          })
+          return {...mission, objectives : newObjectives}
         }
         return mission
-      })}
+      })
+
+      return {...store, missions: {...store.missions, incompleted: newIncompleted }}
+
+     
       
     default:
       throw Error("Unknown action.");
