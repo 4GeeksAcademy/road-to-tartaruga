@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react"
 import { MissionModal } from "./MissionModal"
+import { completeMission } from "../../services/missionsServices"
+import useGlobalReducer from "../../hooks/useGlobalReducer"
 
 
-export const MissionCard = ({ mission, color }) => {
+export const MissionCard = ({ store, mission, color }) => {
 
-    const handleCompleteMission = async () => {
+    const {sailorId} = localStorage.length ? localStorage : sessionStorage
+    const {store: {claudeMissionId}} = useGlobalReducer()
+
+    const handleCompleteMission = async (missionId) => {
         //Codigo para completar mision
+        await completeMission(sailorId, missionId, claudeMissionId)
         //Va con la funcion en el archivo missionsServices
         //La cual hace fetch y completa la mision en el back
     }
@@ -15,25 +21,27 @@ export const MissionCard = ({ mission, color }) => {
 
     const [completed, setCompleted] = useState(false)
 
-    const objectivesCompleted = () => {
+  
 
-        const result = mission?.objectives?.map((objective) => {
-            return objective.completed_at
+    useEffect(() => {     
+
+
+        
+        const initial = mission.objectives.map((objective)=>{
+            return {...objective, completed_at : !!objective.completed_at}
         })
+        
+        setObjectivesFields(initial)
+        setFormFields(initial.map(o=> ({...o})))
+        setCompleted(!initial.some(o => !o.completed_at))
 
-        const finalResult = !result.includes(null)
-        return finalResult
-    }
+    }, [store])
 
-    useEffect(() => {
 
-        setCompleted(objectivesCompleted())
+  
 
-        mission?.objectives?.forEach((objective) => {
-            setFormFields(prev => ([...prev, {...objective, completed_at : objective.completed_at ? true : false}]))
-            setObjectivesFields(prev => ([...prev, {...objective, completed_at : objective.completed_at ? true : false}]))
-        })
-    }, [])
+
+    
 
 
 
@@ -44,9 +52,8 @@ export const MissionCard = ({ mission, color }) => {
                 <h5 data-bs-target={`#missionModal${mission.id}`} data-bs-toggle="modal" className="card-title">{mission?.title}</h5>
             </div>
             <div className="card-footer">
-                <button className="btn btn-primary" onClick={handleCompleteMission} disabled={!completed}>Completar</button>
+                <button className="btn btn-primary" onClick={()=>handleCompleteMission(mission.id)} disabled={!completed}>Completar</button>
             </div>
-            <button onClick={() => console.log("objectives es -->", mission.objectives)} type="button">Ver objectivos</button>
             <MissionModal objectivesFields={objectivesFields} formFields={formFields} setFormFields={setFormFields} mission={mission} />
         </div>
     )

@@ -35,13 +35,13 @@ export const MyMissions = () => {
             <div>
                 <h2>Incompletas</h2>
                 {store.missions.incompleted?.map((mission,index) => {
-                    return <MissionCard key={index}  color="danger" mission={mission} />
+                    return <MissionCard key={index}  store={store} color="danger" mission={mission} />
                 })}
             </div>
             <div>
                 <h2>Completas</h2>
                 {store.missions.completed?.map((mission,index) => {
-                    return <MissionCard key={index} color="success" mission={mission} />
+                    return <MissionCard key={index} store={store} color="success" mission={mission} />
                 })}
 
             </div>

@@ -7,6 +7,7 @@ export const initialStore = () => {
     redirecting: false,
     user: {},
     missions: [],
+    claudeMissionId: 1
   };
 };
 
@@ -57,7 +58,13 @@ export default function storeReducer(store, action = {}) {
 
       return {...store, missions: {...store.missions, incompleted: newIncompleted }}
 
-     
+    case 'COMPLETE_MISSION':
+
+      const filteredMissions = store.missions.incompleted.filter((mission)=> mission.id != action.payload.missionId)
+
+      const newCompletedMissions = [...store.missions.completed, action.payload.newCompleted]
+
+      return {...store, missions: {incompleted: filteredMissions, completed: newCompletedMissions}}
       
     default:
       throw Error("Unknown action.");

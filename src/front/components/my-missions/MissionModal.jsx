@@ -32,30 +32,29 @@ export const MissionModal = ({ objectivesFields, formFields, setFormFields, miss
         
 
     const resetFormFields = () =>{
-        setFormFields({})
+        setFormFields(objectivesFields.map(o => ({...o})))
     }
 
     const handleSubmit = async(event) => {
        
         event.preventDefault()
 
-        objectivesFields.forEach(async(objective, index)=>{
+        objectivesFields.forEach(async(original, index)=>{
             
-            const completedAtObjective = objective.completed_at
-            const completedAtForm = formFields[index].completed_at
+            const current = formFields.find(field => field.id === original.id)
 
-            if(completedAtObjective != completedAtForm){
+            if(!current) return
+
+            if(original.completed_at != current.completed_at){
                
                 load()
-                const completedAt = await changeObjectiveState(objective.id)
-                dispatch({type: "UPDATE_OBJECTIVE", payload: {missionId: id, completedAt, objectiveId: objective.id}})
+                const completedAt = await changeObjectiveState(original.id)
+                dispatch({type: "UPDATE_OBJECTIVE", payload: {missionId: id, completedAt, objectiveId: original.id}})
                 loadOff()
-
+                
             }
         })
     }
-
-
 
     useEffect(() => {
         objectives.forEach((objective) => {
@@ -64,10 +63,6 @@ export const MissionModal = ({ objectivesFields, formFields, setFormFields, miss
             }
         })
     }, [])
-
-
-
-
 
 
 
@@ -82,13 +77,12 @@ export const MissionModal = ({ objectivesFields, formFields, setFormFields, miss
                             <p>{description}</p>
 
                             <ul className="list-group">
-                                {objectives.map((objective, index) => {
+                                {formFields.map((objective, index) => {
                                     return <li key={index} className="list-group-item">
                                                 <label>{objective?.title}</label>
-                                                <input id={objective?.id} defaultChecked={objective?.completed_at ? true : false} onChange={handleChange} type="checkbox">
+                                                <input id={objective?.id} checked={objective?.completed_at ? true : false} onChange={handleChange} type="checkbox">
                                                 </input>
                                             </li>
-
                                 })}
                             </ul>
 
@@ -98,8 +92,6 @@ export const MissionModal = ({ objectivesFields, formFields, setFormFields, miss
                             </div>}
                         </div>
                         <div className="modal-footer">
-                            <button type="button" onClick={()=> console.log(formFields)}>Ver formFields</button>
-                            <button type="button" onClick={()=> console.log(objectivesFields)}>Ver objectivesFields</button>
                             <button data-bs-dismiss="modal" type="submit">Guardar</button>
                             <button onClick={resetFormFields} data-bs-dismiss="modal" type="button">Cancelar</button>
                         </div>
