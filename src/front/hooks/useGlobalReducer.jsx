@@ -25,13 +25,31 @@ export function StoreProvider({ children }) {
         dispatch({ type: "REDIRECTING_OFF" })
     }
 
+    const openSwal = () => {
+        dispatch({ type: "OPEN_SWAL" })
+    }
+    const closeSwal = () => {
+        dispatch({ type: "CLOSE_SWAL" })
+    }
 
-    return <StoreContext.Provider value={{ store, dispatch, load, loadOff, redirect, redirectOff }}>
+    const values = {
+        store,
+        dispatch,
+        load,
+        loadOff,
+        redirect,
+        redirectOff,
+        openSwal,
+        closeSwal
+    }
+
+
+    return <StoreContext.Provider value={values}>
         {children}
     </StoreContext.Provider>
 }
 
 export default function useGlobalReducer() {
-    const { dispatch, store, load, loadOff, redirect, redirectOff } = useContext(StoreContext)
-    return { dispatch, store, load, loadOff, redirect, redirectOff };
+    const { dispatch, store, load, loadOff, redirect, redirectOff, openSwal, closeSwal } = useContext(StoreContext)
+    return { dispatch, store, load, loadOff, redirect, redirectOff, openSwal, closeSwal };
 }

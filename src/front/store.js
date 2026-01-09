@@ -5,6 +5,7 @@ export const initialStore = () => {
     login: false,
     loading: false,
     redirecting: false,
+    swalClosed : false,
     user: {},
     missions: [],
     claudeMissionId: 1
@@ -31,6 +32,12 @@ export default function storeReducer(store, action = {}) {
 
     case "REDIRECTING_OFF":
       return { ...store, redirecting: false };
+
+    case "CLOSE_SWAL":
+      return {...store, swalClosed: true}
+
+    case "OPEN_SWAL":
+      return {...store, swalClosed: false}
 
     case "SAVE_USER":
       return { ...store, user: action.payload };
@@ -65,7 +72,7 @@ export default function storeReducer(store, action = {}) {
       const newCompletedMissions = [...store.missions.completed, action.payload.newCompleted]
 
       return {...store, missions: {incompleted: filteredMissions, completed: newCompletedMissions}}
-      
+
     default:
       throw Error("Unknown action.");
   }

@@ -387,15 +387,19 @@ def complete_sailor_mission(sailor_id, mission_id, cm_id):
     
     completed_today = db.session.execute(
         select(Mission).where(Mission.sailor_owner_id == sailor_id,
-                              Mission.id == mission_id,
                               Mission.completed_at >= utc_day_start,
                               Mission.completed_at <= utc_day_end
                               )
     ).scalars().all()
 
+    print("hola, antes del if de completed_today")
+    print(f"len(completed_today) es {len(completed_today)}")
     if(len(completed_today) >= 3):
+        print("hola, dentro del if de completed_today")
         return jsonify({"message": "maximum of diary mission completed reached 3 of 3"}), 400
     
+    print("hola, despues del if de completed_today")
+
     if mission.completed_at is not None:
         return jsonify({"message": "mission already completed"}),400
     

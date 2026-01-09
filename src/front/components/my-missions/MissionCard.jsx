@@ -2,16 +2,40 @@ import { useEffect, useState } from "react"
 import { MissionModal } from "./MissionModal"
 import { completeMission } from "../../services/missionsServices"
 import useGlobalReducer from "../../hooks/useGlobalReducer"
+import Swal from "sweetalert2"
 
 
 export const MissionCard = ({ store, mission, color }) => {
 
     const {sailorId} = localStorage.length ? localStorage : sessionStorage
-    const {store: {claudeMissionId}} = useGlobalReducer()
+    const {dispatch, load, loadOff,openSwal, closeSwal, store: {claudeMissionId, loading, swalClosed}} = useGlobalReducer()
 
     const handleCompleteMission = async (missionId) => {
         //Codigo para completar mision
-        await completeMission(sailorId, missionId, claudeMissionId)
+        load()
+        const newCompleted = await completeMission(sailorId, missionId, claudeMissionId)
+        loadOff()
+        
+        if(newCompleted.message){
+            console.log("newCompleted tiene message")
+            if(newCompleted.message.includes("maximum")){
+                if(swalClosed){
+                    openSwal()
+                    // setTimeout(()=>{
+                        Swal.fire({
+                            title: "Maximo diario alcanzado",
+                            text: "Bien hecho marinero, has alcanzado el limite de misiones personales. A partir de mañana puedes seguir ayudando a Claude de forma personal, pero puedes intentar haciendolo ayudando a tu tripulación",
+                            confirmButtonText: "Genial!"
+                        }).then(()=>{
+                            closeSwal()
+                        })
+
+                    // }, 5000)
+                    
+                }
+            }
+        }
+        // dispatch({type: "COMPLETE_MISSION", payload: {missionId, newCompleted}})
         //Va con la funcion en el archivo missionsServices
         //La cual hace fetch y completa la mision en el back
     }

@@ -27,7 +27,7 @@ import Swal from 'sweetalert2'
 
 export const TartarugaRoutes = () => {
 
-  const { dispatch, store, redirect, redirectOff } = useGlobalReducer()
+  const { dispatch, store, redirect, redirectOff, openSwal, closeSwal } = useGlobalReducer()
 
   const updateLogin = async () => {
     const storage = localStorage.length == 0 ? sessionStorage : localStorage
@@ -42,34 +42,38 @@ export const TartarugaRoutes = () => {
   }, [])
 
   useEffect(() => {
-    swalRedirect(store.REDIRECTING)
-  }, [store.REDIRECTING])
+    swalRedirect(store.redirecting)
+  }, [store.redirecting])
 
   const swalRedirect = async (dependence) => {
+
     if (dependence) {
+      openSwal()
       Swal.fire({
         title: "Redirigiendo...",
         html: `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>`,
-        timer: 500,
+        timer: 5000,
         showConfirmButton: false,
         allowOutsideClick: false,
         allowEscapeKey: false
       }).then(() => {
         redirectOff()
+        closeSwal()
       })
     }
   }
 
   const swalLoading = async (dependence) => {
-
     if (dependence) {
+      openSwal()
       Swal.fire({
         title: "Cargando...",
         html: `<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>`,
         showConfirmButton: false,
         allowOutsideClick: false,
         allowEscapeKey: false,
-        timer: 5000
+      }).then(()=>{
+        closeSwal()
       })
     }
   }

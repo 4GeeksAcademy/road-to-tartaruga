@@ -35,4 +35,12 @@ export const completeMission = async(sailorId, missionId, claudeMissionId)=>{
     method: "PATCH"
    }) 
 
+   const data = await response.json()
+   
+   if(response.ok){
+       return data.mission
+    }else {
+        return data
+    }
+
 }
