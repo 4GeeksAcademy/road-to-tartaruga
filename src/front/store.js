@@ -1,37 +1,40 @@
+import Swal from 'sweetalert2'
+
 export const initialStore=()=>{
   return{
-    message: null,
-    todos: [
-      {
-        id: 1,
-        title: "Make the bed",
-        background: null,
-      },
-      {
-        id: 2,
-        title: "Do my homework",
-        background: null,
-      }
-    ]
+   login: false,
+   loading:false,
+   redirecting: false,
+   user: {}
   }
 }
 
 export default function storeReducer(store, action = {}) {
   switch(action.type){
-    case 'set_hello':
-      return {
-        ...store,
-        message: action.payload
-      };
-      
-    case 'add_task':
+   case 'login':
 
-      const { id,  color } = action.payload
+   if(!action.payload){
+    return {...store, login: action.payload, user: {}}
+   }
 
-      return {
-        ...store,
-        todos: store.todos.map((todo) => (todo.id === id ? { ...todo, background: color } : todo))
-      };
+    return {...store, login: action.payload}
+
+  case 'loading':
+    return {...store, loading: true}
+
+  case 'loadingOff':
+    return {...store, loading: false}
+
+  case 'redirecting':
+    return {...store, redirecting: true}
+    
+  case 'redirecting-off':
+    return {...store, redirecting: false}
+
+  case 'saveUser':
+    return {...store, user: action.payload}
+
+
     default:
       throw Error('Unknown action.');
   }    
